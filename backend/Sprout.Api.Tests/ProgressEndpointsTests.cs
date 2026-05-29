@@ -8,6 +8,7 @@ namespace Sprout.Api.Tests;
 public class ProgressEndpointsTests : IClassFixture<SproutWebApplicationFactory>
 {
     private readonly HttpClient _client;
+    private static readonly DateOnly TestToday = new(2026, 5, 30);
 
     public ProgressEndpointsTests(SproutWebApplicationFactory factory)
     {
@@ -15,7 +16,7 @@ public class ProgressEndpointsTests : IClassFixture<SproutWebApplicationFactory>
     }
 
     private static string TodayString() =>
-        DateOnly.FromDateTime(DateTime.Now).ToString("yyyy-MM-dd");
+        TestToday.ToString("yyyy-MM-dd");
 
     [Fact]
     public async Task GetToday_Returns200WithTodaysDate()
@@ -124,11 +125,13 @@ public class ProgressEndpointsTests : IClassFixture<SproutWebApplicationFactory>
     }
 
     [Fact]
-    public async Task GetWeek_LastDayIsToday()
+    public async Task GetWeek_LastDayIsSunday()
     {
         var week = await _client.GetFromJsonAsync<List<DailyProgress>>("/api/progress/week");
+        var daysToSunday = TestToday.DayOfWeek == DayOfWeek.Sunday ? 0 : 7 - (int)TestToday.DayOfWeek;
+        var expectedSunday = TestToday.AddDays(daysToSunday).ToString("yyyy-MM-dd");
 
-        Assert.Equal(TodayString(), week!.Last().Date);
+        Assert.Equal(expectedSunday, week!.Last().Date);
     }
 
     [Fact]

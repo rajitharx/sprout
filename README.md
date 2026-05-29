@@ -7,14 +7,16 @@ A gamified daily habit tracker for toddlers (ages 3–4). The child taps through
 ## Features
 
 **Child view**
+- Customizable child profile with name and avatar emoji
 - Swipeable task carousel — one big card per habit, no reading required
 - Emoji-first design with giant tap targets
 - Celebration overlay when all tasks are complete
-- Streak bar showing the last 7 days
+- Streak bar showing the current week (Monday–Sunday)
 - Offline-capable — falls back to `localStorage` cache if the API is unreachable
 
 **Parent view**
 - Unlocked via a discreet tap (no password, no auth complexity)
+- Edit child profile (name and avatar emoji)
 - Create, edit, reorder, and deactivate tasks
 - Each task has a label, emoji, and sort order
 
@@ -39,10 +41,10 @@ A gamified daily habit tracker for toddlers (ages 3–4). The child taps through
 sprout/
 ├── backend/
 │   ├── Sprout.Api/               .NET 10 Minimal API
-│   │   ├── Endpoints/            TaskEndpoints.cs, ProgressEndpoints.cs
-│   │   ├── Models/               HabitTask.cs, DailyProgress.cs
-│   │   ├── Services/             ITaskService, IProgressService + JSON implementations
-│   │   └── Storage/data/         tasks.json, progress.json  (runtime data, gitignored)
+│   │   ├── Endpoints/            TaskEndpoints.cs, ProgressEndpoints.cs, ProfileEndpoints.cs
+│   │   ├── Models/               HabitTask.cs, DailyProgress.cs, ChildProfile.cs
+│   │   ├── Services/             ITaskService, IProgressService, IProfileService + JSON implementations
+│   │   └── Storage/data/         tasks.json, progress.json, profile.json (runtime data, gitignored)
 │   └── Sprout.Api.Tests/         Integration tests
 │
 ├── frontend/
@@ -50,7 +52,7 @@ sprout/
 │       └── src/
 │           ├── api/client.ts     All API calls — single source of truth
 │           ├── components/       TaskCard, TaskCarousel, ParentPanel, CelebrationOverlay, StreakBar, DoneButton
-│           ├── hooks/            useTasks.ts, useProgress.ts
+│           ├── hooks/            useTasks.ts, useProgress.ts, useProfile.ts
 │           └── types/            Shared TypeScript types
 │
 └── Sprout.slnx                   .NET solution file
@@ -128,7 +130,7 @@ The API serves the built frontend as static files and falls back to `index.html`
 | `GET` | `/api/progress/today` | Today's completed task IDs |
 | `POST` | `/api/progress/complete/{taskId}` | Mark a task complete |
 | `POST` | `/api/progress/incomplete/{taskId}` | Unmark a task |
-| `GET` | `/api/progress/week` | Last 7 days of progress |
+| `GET` | `/api/progress/week` | Current week's progress (Monday–Sunday) |
 
 **Progress object**
 
@@ -137,6 +139,22 @@ The API serves the built frontend as static files and falls back to `index.html`
   "date": "2026-05-29",
   "completedTaskIds": ["uuid-1", "uuid-2"],
   "lastUpdated": "2026-05-29T07:30:00Z"
+}
+```
+
+### Child Profile
+
+| Method | Route | Description |
+|---|---|---|
+| `GET` | `/api/profile` | Get the child's profile |
+| `PUT` | `/api/profile` | Update the child's profile |
+
+**Child Profile object**
+
+```json
+{
+  "name": "Child",
+  "avatar": "👦"
 }
 ```
 
@@ -175,10 +193,14 @@ Tests use `WebApplicationFactory` to run the full API in-process against real JS
 
 ## Architecture Notes
 
-**Repository pattern** — all data access goes through `ITaskService` and `IProgressService`. The current implementations write JSON files; swapping to SQLite or a cloud DB is a single new class per interface with no changes to endpoints or frontend.
+**Repository pattern** — all data access goes through `ITaskService`, `IProgressService`, and `IProfileService`. The current implementations write JSON files; swapping to SQLite or a cloud DB is a single new class per interface with no changes to endpoints or frontend.
 
 **Concurrent writes** — `JsonProgressService` uses a `SemaphoreSlim(1,1)` to serialise all writes, so rapid taps from the child won't corrupt the progress file.
 
+**Week boundaries** — the streak bar displays the current week starting from Monday and ending on Sunday, ensuring consistent week boundaries across app restarts.
+
+**Child profile** — stored persistently via `IProfileService`, allowing parents to customize the child's name and avatar emoji.
+
 **No router** — view switching between child and parent is a single `useState` in `App.tsx`. No router library needed.
 
-**Offline fallback** — `useTasks` and `useProgress` write to `localStorage` on every successful fetch. If the API is unreachable on load, the cached data is used so the child view always renders.
+**Offline fallback** — `useTasks`, `useProgress`, and `useProfile` write to `localStorage` on every successful fetch. If the API is unreachable on load, the cached data is used so the child view always renders.

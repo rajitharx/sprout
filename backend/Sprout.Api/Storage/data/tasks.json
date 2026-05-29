@@ -5,5 +5,47 @@
     "emoji": "\uD83E\uDEA5",
     "sortOrder": 0,
     "isActive": true
+  },
+  {
+    "id": "default-2",
+    "label": "Get Dressed",
+    "emoji": "\uD83D\uDC55",
+    "sortOrder": 1,
+    "isActive": true
+  },
+  {
+    "id": "default-3",
+    "label": "Eat Breakfast",
+    "emoji": "\uD83E\uDD63",
+    "sortOrder": 2,
+    "isActive": true
+  },
+  {
+    "id": "default-4",
+    "label": "Eat Dinner",
+    "emoji": "\uD83C\uDF7D\uFE0F",
+    "sortOrder": 3,
+    "isActive": true
+  },
+  {
+    "id": "default-5",
+    "label": "Wash Before Bed",
+    "emoji": "\uD83E\uDDFC",
+    "sortOrder": 4,
+    "isActive": true
+  },
+  {
+    "id": "default-6",
+    "label": "Brush Teeth at Night",
+    "emoji": "\uD83E\uDEA5",
+    "sortOrder": 5,
+    "isActive": true
+  },
+  {
+    "id": "66edf781-e651-4d35-9185-76a53a60c93f",
+    "label": "Read Book",
+    "emoji": "\uD83D\uDCDA",
+    "sortOrder": 6,
+    "isActive": true
   }
 ]

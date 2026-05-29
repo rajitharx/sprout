@@ -8,7 +8,6 @@ interface Props {
 
 export function StreakBar({ week }: Props) {
   const today = new Date().toISOString().slice(0, 10);
-  const todayDayIndex = (new Date().getDay() + 6) % 7; // Mon=0
 
   return (
     <div className="flex items-center justify-center gap-2 px-4 py-2 h-12">
@@ -16,7 +15,7 @@ export function StreakBar({ week }: Props) {
         const isToday = day.date === today;
         const isFuture = day.date > today;
         const isDone = day.completedTaskIds.length > 0;
-        const dayOfWeek = DAY_LABELS[(todayDayIndex - (6 - i) + 7) % 7];
+        const dayOfWeek = DAY_LABELS[i];
 
         let dotClass = '';
         if (isDone) {

@@ -11,3 +11,8 @@ export interface DailyProgress {
   completedTaskIds: string[];
   lastUpdated: string;
 }
+
+export interface ChildProfile {
+  name: string;
+  avatar: string;
+}

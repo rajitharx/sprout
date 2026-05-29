@@ -3,7 +3,10 @@
     "allow": [
       "Bash(dotnet build *)",
       "Bash(dotnet list *)",
-      "Bash(npx vite *)"
+      "Bash(npx vite *)",
+      "Bash(chmod +x /Users/rajitha/Development/sprout/run.sh)",
+      "Bash(dotnet run *)",
+      "Bash(dotnet test *)"
     ]
   }
 }
