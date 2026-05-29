@@ -1,6 +1,7 @@
 import { useState, useCallback, useEffect } from 'react';
 import { useTasks } from './hooks/useTasks';
 import { useProgress } from './hooks/useProgress';
+import { useProfile } from './hooks/useProfile';
 import { StreakBar } from './components/StreakBar';
 import { TaskCarousel } from './components/TaskCarousel';
 import { DoneButton } from './components/DoneButton';
@@ -25,6 +26,7 @@ export function App() {
   }, []);
 
   const { tasks, loading, createTask, updateTask, deleteTask } = useTasks();
+  const { profile, updateProfile } = useProfile();
   const { today, week, markComplete, markIncomplete } = useProgress(handleAllComplete);
 
   const completedIds = today?.completedTaskIds ?? [];
@@ -57,10 +59,12 @@ export function App() {
     return (
       <ParentPanel
         tasks={tasks}
+        profile={profile}
         onBack={() => setView('child')}
         onCreate={createTask}
         onUpdate={updateTask}
         onDelete={deleteTask}
+        onUpdateProfile={updateProfile}
       />
     );
   }
@@ -84,6 +88,7 @@ export function App() {
         </div>
       ) : (
         <TaskCarousel
+          profile={profile}
           tasks={tasks}
           completedIds={completedIds}
           currentIndex={currentIndex}

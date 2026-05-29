@@ -114,9 +114,11 @@ public class JsonProgressService : IProgressService
     {
         var data = await ReadFileAsync();
         var today = DateOnly.FromDateTime(DateTime.Now);
+        var daysToMonday = today.DayOfWeek == DayOfWeek.Sunday ? 6 : (int)today.DayOfWeek - 1;
+        var monday = today.AddDays(-daysToMonday);
 
         return Enumerable.Range(0, 7)
-            .Select(i => today.AddDays(-6 + i).ToString("yyyy-MM-dd"))
+            .Select(i => monday.AddDays(i).ToString("yyyy-MM-dd"))
             .Select(date => data.FirstOrDefault(p => p.Date == date) ?? new DailyProgress { Date = date })
             .ToList();
     }

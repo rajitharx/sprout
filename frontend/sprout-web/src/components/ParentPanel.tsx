@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import type { HabitTask } from '../types';
+import type { HabitTask, ChildProfile } from '../types';
 
 const EMOJI_OPTIONS = [
   '🪥','🛁','🍎','🥛','👕','🧦','📚','🧸','🙏','🌙',
@@ -8,18 +8,22 @@ const EMOJI_OPTIONS = [
 
 interface Props {
   tasks: HabitTask[];
+  profile: ChildProfile;
   onBack: () => void;
   onCreate: (task: Omit<HabitTask, 'id'>) => Promise<unknown>;
   onUpdate: (id: string, task: HabitTask) => Promise<unknown>;
   onDelete: (id: string) => Promise<void>;
+  onUpdateProfile: (profile: ChildProfile) => Promise<ChildProfile>;
 }
 
-export function ParentPanel({ tasks, onBack, onCreate, onUpdate, onDelete }: Props) {
+export function ParentPanel({ tasks, profile, onBack, onCreate, onUpdate, onDelete, onUpdateProfile }: Props) {
   const [label, setLabel] = useState('');
   const [emoji, setEmoji] = useState('🪥');
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editLabel, setEditLabel] = useState('');
   const [editEmoji, setEditEmoji] = useState('');
+  const [profileName, setProfileName] = useState(profile.name);
+  const [profileAvatar, setProfileAvatar] = useState(profile.avatar);
   const [busy, setBusy] = useState(false);
 
   const handleCreate = async () => {
@@ -55,6 +59,16 @@ export function ParentPanel({ tasks, onBack, onCreate, onUpdate, onDelete }: Pro
     }
   };
 
+  const saveProfile = async () => {
+    if (!profileName.trim()) return;
+    setBusy(true);
+    try {
+      await onUpdateProfile({ name: profileName.trim(), avatar: profileAvatar });
+    } finally {
+      setBusy(false);
+    }
+  };
+
   return (
     <div className="h-[100dvh] flex flex-col bg-gray-50">
       <div className="flex items-center gap-3 px-4 py-4 bg-white border-b border-gray-100">
@@ -69,6 +83,31 @@ export function ParentPanel({ tasks, onBack, onCreate, onUpdate, onDelete }: Pro
       </div>
 
       <div className="flex-1 overflow-y-auto px-4 py-4 space-y-3">
+        <div className="bg-white rounded-2xl p-4 shadow-sm space-y-3">
+          <h2 className="text-sm font-semibold text-gray-500 uppercase tracking-wide">Child Profile</h2>
+          <div className="flex gap-2 items-center">
+            <input
+              value={profileAvatar}
+              onChange={e => setProfileAvatar(e.target.value)}
+              maxLength={2}
+              className="text-3xl text-center border border-gray-200 rounded-xl px-2 py-1 w-16 focus:outline-none focus:ring-2 focus:ring-orange-300"
+            />
+            <input
+              value={profileName}
+              onChange={e => setProfileName(e.target.value)}
+              placeholder="Child's name"
+              className="flex-1 border border-gray-200 rounded-xl px-3 py-2 text-base focus:outline-none focus:ring-2 focus:ring-orange-300"
+            />
+          </div>
+          <button
+            onClick={saveProfile}
+            disabled={busy || !profileName.trim()}
+            className="w-full py-2 bg-orange-400 text-white font-semibold rounded-xl active:scale-95 transition-transform disabled:opacity-50"
+          >
+            Save Profile
+          </button>
+        </div>
+
         {tasks.map(task => (
           <div key={task.id} className="bg-white rounded-2xl p-4 shadow-sm">
             {editingId === task.id ? (

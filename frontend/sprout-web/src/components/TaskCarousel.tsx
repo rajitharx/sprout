@@ -1,17 +1,18 @@
 import { useRef } from 'react';
-import type { HabitTask } from '../types';
+import type { HabitTask, ChildProfile } from '../types';
 import { TaskCard } from './TaskCard';
 
 const SWIPE_THRESHOLD = 50;
 
 interface Props {
+  profile: ChildProfile;
   tasks: HabitTask[];
   completedIds: string[];
   currentIndex: number;
   onIndexChange: (index: number) => void;
 }
 
-export function TaskCarousel({ tasks, completedIds, currentIndex, onIndexChange }: Props) {
+export function TaskCarousel({ profile, tasks, completedIds, currentIndex, onIndexChange }: Props) {
   const pointerStartX = useRef<number | null>(null);
 
   const goNext = () => {
@@ -44,6 +45,11 @@ export function TaskCarousel({ tasks, completedIds, currentIndex, onIndexChange 
 
   return (
     <div className="flex-1 flex flex-col overflow-hidden relative px-4 pb-2">
+      <div className="flex flex-col items-center justify-center py-4 gap-2">
+        <div className="text-6xl">{profile.avatar}</div>
+        <div className="text-lg font-semibold text-gray-600">{profile.name}</div>
+      </div>
+
       <div
         className="flex-1 overflow-hidden relative cursor-grab active:cursor-grabbing"
         onPointerDown={handlePointerDown}

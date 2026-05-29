@@ -27,16 +27,18 @@ public class JsonTaskServiceTests : IDisposable
     }
 
     [Fact]
-    public async Task GetAllAsync_OnFirstRun_SeedsDefaultBrushTeethTask()
+    public async Task GetAllAsync_OnFirstRun_SeedsDefaultTasks()
     {
         var svc = CreateService();
 
         var tasks = await svc.GetAllAsync();
 
-        Assert.Single(tasks);
+        Assert.Equal(6, tasks.Count);
         Assert.Equal("default-1", tasks[0].Id);
         Assert.Equal("Brush Teeth", tasks[0].Label);
         Assert.Equal("🪥", tasks[0].Emoji);
+        Assert.Equal("default-6", tasks[5].Id);
+        Assert.Equal("Brush Teeth at Night", tasks[5].Label);
     }
 
     [Fact]

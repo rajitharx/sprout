@@ -1,4 +1,4 @@
-import type { HabitTask, DailyProgress } from '../types';
+import type { HabitTask, DailyProgress, ChildProfile } from '../types';
 
 async function json<T>(res: Response): Promise<T> {
   if (!res.ok) throw new Error(`${res.status} ${res.statusText}`);
@@ -43,4 +43,14 @@ export const api = {
 
   getWeek: () =>
     fetch('/api/progress/week').then(r => json<DailyProgress[]>(r)),
+
+  getProfile: () =>
+    fetch('/api/profile').then(r => json<ChildProfile>(r)),
+
+  updateProfile: (profile: ChildProfile) =>
+    fetch('/api/profile', {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(profile),
+    }).then(r => json<ChildProfile>(r)),
 };

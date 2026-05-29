@@ -5,6 +5,7 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddSingleton<ITaskService, JsonTaskService>();
 builder.Services.AddSingleton<IProgressService, JsonProgressService>();
+builder.Services.AddSingleton<IChildProfileService, JsonChildProfileService>();
 builder.Services.AddCors();
 
 var app = builder.Build();
@@ -21,6 +22,7 @@ app.UseStaticFiles();
 
 app.MapTaskEndpoints();
 app.MapProgressEndpoints();
+app.MapChildProfileEndpoints();
 
 app.MapFallbackToFile("index.html");
 
