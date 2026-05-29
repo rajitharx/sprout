@@ -17,20 +17,23 @@ You are building and maintaining **Sprout**, a gamified daily habit tracker for 
 │       ├── animations.md
 │       └── toddler-ux.md
 │
-├── Sprout.Api/               ← .NET 10 Minimal API
-│   ├── Program.cs
-│   ├── Endpoints/
-│   ├── Models/
-│   ├── Services/
-│   └── Storage/data/         ← tasks.json, progress.json
+├── backend/
+│   ├── Sprout.Api/           ← .NET 10 Minimal API
+│   │   ├── Program.cs
+│   │   ├── Endpoints/
+│   │   ├── Models/
+│   │   ├── Services/
+│   │   └── Storage/data/     ← tasks.json, progress.json
+│   └── Sprout.Api.Tests/
 │
-└── sprout-web/               ← React 18 + TypeScript + Vite + Tailwind v4
-    ├── src/
-    │   ├── api/client.ts
-    │   ├── components/
-    │   ├── hooks/
-    │   └── types/
-    └── public/manifest.json
+└── frontend/
+    └── sprout-web/           ← React 18 + TypeScript + Vite + Tailwind v4
+        ├── src/
+        │   ├── api/client.ts
+        │   ├── components/
+        │   ├── hooks/
+        │   └── types/
+        └── public/manifest.json
 ```
 
 ---
@@ -69,11 +72,11 @@ Use Tailwind utility classes. Do not write custom CSS except for the keyframe an
 
 | File | Purpose |
 |---|---|
-| `Sprout.Api/Program.cs` | Service registration + endpoint mapping |
-| `Sprout.Api/Services/JsonProgressService.cs` | File I/O with SemaphoreSlim — be careful with locking |
-| `sprout-web/src/api/client.ts` | Single source of truth for all API calls |
-| `sprout-web/src/App.tsx` | View state (`child` \| `parent`), data fetching orchestration |
-| `sprout-web/src/index.css` | All keyframe animations live here |
+| `backend/Sprout.Api/Program.cs` | Service registration + endpoint mapping |
+| `backend/Sprout.Api/Services/JsonProgressService.cs` | File I/O with SemaphoreSlim — be careful with locking |
+| `frontend/sprout-web/src/api/client.ts` | Single source of truth for all API calls |
+| `frontend/sprout-web/src/App.tsx` | View state (`child` \| `parent`), data fetching orchestration |
+| `frontend/sprout-web/src/index.css` | All keyframe animations live here |
 
 ---
 
@@ -93,13 +96,13 @@ Before working on any area, read the relevant skill file:
 
 ```bash
 # Backend
-cd Sprout.Api && dotnet run           # starts on http://localhost:5000
+cd backend/Sprout.Api && dotnet run           # starts on http://localhost:5000
 
 # Frontend
-cd sprout-web && npm run dev          # starts on http://localhost:5173
+cd frontend/sprout-web && npm run dev          # starts on http://localhost:5173
 
-# Build for production (outputs to Sprout.Api/wwwroot)
-cd sprout-web && npm run build && cp -r dist/* ../Sprout.Api/wwwroot/
+# Build for production (outputs to backend/Sprout.Api/wwwroot)
+cd frontend/sprout-web && npm run build && cp -r dist/* ../../backend/Sprout.Api/wwwroot/
 
 # Run both (dev)
 ./run.sh
