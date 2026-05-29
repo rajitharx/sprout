@@ -44,14 +44,14 @@ public class JsonTaskService : ITaskService
             var data = await ReadFileAsync();
             if (data.Count == 0)
             {
-                data.Add(new HabitTask
-                {
-                    Id = "default-1",
-                    Label = "Brush Teeth",
-                    Emoji = "🪥",
-                    SortOrder = 0,
-                    IsActive = true
-                });
+                data.AddRange([
+                    new HabitTask { Id = "default-1", Label = "Brush Teeth",        Emoji = "🪥", SortOrder = 0, IsActive = true },
+                    new HabitTask { Id = "default-2", Label = "Get Dressed",         Emoji = "👕", SortOrder = 1, IsActive = true },
+                    new HabitTask { Id = "default-3", Label = "Eat Breakfast",       Emoji = "🥣", SortOrder = 2, IsActive = true },
+                    new HabitTask { Id = "default-4", Label = "Eat Dinner",          Emoji = "🍽️", SortOrder = 3, IsActive = true },
+                    new HabitTask { Id = "default-5", Label = "Wash Before Bed",     Emoji = "🧼", SortOrder = 4, IsActive = true },
+                    new HabitTask { Id = "default-6", Label = "Brush Teeth at Night",Emoji = "🪥", SortOrder = 5, IsActive = true },
+                ]);
                 await WriteFileAsync(data);
             }
             _seeded = true;

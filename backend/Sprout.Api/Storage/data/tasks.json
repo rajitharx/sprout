@@ -2,8 +2,43 @@
   {
     "id": "default-1",
     "label": "Brush Teeth",
-    "emoji": "\uD83E\uDEA5",
+    "emoji": "🪥",
     "sortOrder": 0,
+    "isActive": true
+  },
+  {
+    "id": "default-2",
+    "label": "Get Dressed",
+    "emoji": "👕",
+    "sortOrder": 1,
+    "isActive": true
+  },
+  {
+    "id": "default-3",
+    "label": "Eat Breakfast",
+    "emoji": "🥣",
+    "sortOrder": 2,
+    "isActive": true
+  },
+  {
+    "id": "default-4",
+    "label": "Eat Dinner",
+    "emoji": "🍽️",
+    "sortOrder": 3,
+    "isActive": true
+  },
+  {
+    "id": "default-5",
+    "label": "Wash Before Bed",
+    "emoji": "🧼",
+    "sortOrder": 4,
+    "isActive": true
+  },
+  {
+    "id": "default-6",
+    "label": "Brush Teeth at Night",
+    "emoji": "🪥",
+    "sortOrder": 5,
     "isActive": true
   }
 ]
