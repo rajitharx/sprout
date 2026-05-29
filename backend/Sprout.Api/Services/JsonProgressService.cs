@@ -7,6 +7,7 @@ public class JsonProgressService : IProgressService
 {
     private readonly string _path;
     private readonly SemaphoreSlim _lock = new(1, 1);
+    private readonly ISystemClock _clock;
 
     private static readonly JsonSerializerOptions _options = new()
     {
@@ -15,13 +16,14 @@ public class JsonProgressService : IProgressService
         PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
     };
 
-    public JsonProgressService(IConfiguration config)
+    public JsonProgressService(IConfiguration config, ISystemClock? clock = null)
     {
         var dataPath = config["Storage:DataPath"] ?? "Storage/data";
         Directory.CreateDirectory(dataPath);
         _path = Path.Combine(dataPath, "progress.json");
         if (!File.Exists(_path))
             File.WriteAllText(_path, "[]");
+        _clock = clock ?? new SystemClock();
     }
 
     private async Task<List<DailyProgress>> ReadFileAsync()
@@ -33,8 +35,8 @@ public class JsonProgressService : IProgressService
     private async Task WriteFileAsync(List<DailyProgress> data) =>
         await File.WriteAllTextAsync(_path, JsonSerializer.Serialize(data, _options));
 
-    private static string Today() =>
-        DateOnly.FromDateTime(DateTime.Now).ToString("yyyy-MM-dd");
+    private string Today() =>
+        _clock.Today().ToString("yyyy-MM-dd");
 
     public async Task<DailyProgress> GetTodayAsync()
     {
@@ -113,7 +115,7 @@ public class JsonProgressService : IProgressService
     public async Task<List<DailyProgress>> GetWeekAsync()
     {
         var data = await ReadFileAsync();
-        var today = DateOnly.FromDateTime(DateTime.Now);
+        var today = _clock.Today();
         var daysToMonday = today.DayOfWeek == DayOfWeek.Sunday ? 6 : (int)today.DayOfWeek - 1;
         var monday = today.AddDays(-daysToMonday);
 

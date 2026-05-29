@@ -3,6 +3,7 @@ using Sprout.Api.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
+builder.Services.AddSingleton<ISystemClock, SystemClock>();
 builder.Services.AddSingleton<ITaskService, JsonTaskService>();
 builder.Services.AddSingleton<IProgressService, JsonProgressService>();
 builder.Services.AddSingleton<IChildProfileService, JsonChildProfileService>();

@@ -7,6 +7,7 @@ namespace Sprout.Api.Tests;
 public class JsonProgressServiceTests : IDisposable
 {
     private readonly string _tempDir;
+    private readonly TestSystemClock _clock = new(new DateOnly(2026, 5, 30));
 
     public JsonProgressServiceTests()
     {
@@ -17,7 +18,7 @@ public class JsonProgressServiceTests : IDisposable
     private JsonProgressService CreateService() =>
         new(new ConfigurationBuilder()
             .AddInMemoryCollection(new Dictionary<string, string?> { ["Storage:DataPath"] = _tempDir })
-            .Build());
+            .Build(), _clock);
 
     public void Dispose()
     {
@@ -25,8 +26,8 @@ public class JsonProgressServiceTests : IDisposable
             Directory.Delete(_tempDir, recursive: true);
     }
 
-    private static string TodayString() =>
-        DateOnly.FromDateTime(DateTime.Now).ToString("yyyy-MM-dd");
+    private string TodayString() =>
+        _clock.Today().ToString("yyyy-MM-dd");
 
     [Fact]
     public async Task GetTodayAsync_NewDay_ReturnsEmptyCompletedList()
@@ -142,20 +143,25 @@ public class JsonProgressServiceTests : IDisposable
     }
 
     [Fact]
-    public async Task GetWeekAsync_LastDayIsToday()
+    public async Task GetWeekAsync_LastDayIsSunday()
     {
         var week = await CreateService().GetWeekAsync();
+        var today = _clock.Today();
+        var daysToSunday = today.DayOfWeek == DayOfWeek.Sunday ? 0 : 7 - (int)today.DayOfWeek;
+        var expectedSunday = today.AddDays(daysToSunday).ToString("yyyy-MM-dd");
 
-        Assert.Equal(TodayString(), week.Last().Date);
+        Assert.Equal(expectedSunday, week.Last().Date);
     }
 
     [Fact]
-    public async Task GetWeekAsync_FirstDayIsSixDaysAgo()
+    public async Task GetWeekAsync_FirstDayIsMonday()
     {
-        var expected = DateOnly.FromDateTime(DateTime.Now).AddDays(-6).ToString("yyyy-MM-dd");
         var week = await CreateService().GetWeekAsync();
+        var today = _clock.Today();
+        var daysToMonday = today.DayOfWeek == DayOfWeek.Sunday ? 6 : (int)today.DayOfWeek - 1;
+        var expectedMonday = today.AddDays(-daysToMonday).ToString("yyyy-MM-dd");
 
-        Assert.Equal(expected, week.First().Date);
+        Assert.Equal(expectedMonday, week.First().Date);
     }
 
     [Fact]
