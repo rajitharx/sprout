@@ -1,4 +1,4 @@
-import { useRef } from 'react';
+import { useRef, useState, useEffect } from 'react';
 import type { HabitTask, ChildProfile } from '../types';
 import { TaskCard } from './TaskCard';
 
@@ -14,6 +14,19 @@ interface Props {
 
 export function TaskCarousel({ profile, tasks, completedIds, currentIndex, onIndexChange }: Props) {
   const pointerStartX = useRef<number | null>(null);
+  const SPACING_PX = 16; // matches Tailwind `pr-4` / `px-4`
+  const viewportRef = useRef<HTMLDivElement | null>(null);
+  const [viewportWidth, setViewportWidth] = useState(0);
+
+  useEffect(() => {
+    function measure() {
+      if (!viewportRef.current) return;
+      setViewportWidth(viewportRef.current.clientWidth);
+    }
+    measure();
+    window.addEventListener('resize', measure);
+    return () => window.removeEventListener('resize', measure);
+  }, []);
 
   const goNext = () => {
     if (currentIndex < tasks.length - 1) onIndexChange(currentIndex + 1);
@@ -54,13 +67,20 @@ export function TaskCarousel({ profile, tasks, completedIds, currentIndex, onInd
         className="flex-1 overflow-hidden relative cursor-grab active:cursor-grabbing"
         onPointerDown={handlePointerDown}
         onPointerUp={handlePointerUp}
+        ref={viewportRef}
       >
         <div
           className="flex h-full transition-transform duration-300 ease-in-out"
-          style={{ transform: `translateX(calc(-${currentIndex * 100}% - ${currentIndex * 16}px))` }}
+          style={{
+            transform: `translateX(-${currentIndex * (viewportWidth + SPACING_PX)}px)`,
+          }}
         >
           {tasks.map((task, i) => (
-            <div key={task.id} className="flex-shrink-0 w-full h-full pr-4 last:pr-0">
+            <div
+              key={task.id}
+              className="flex-shrink-0 h-full"
+              style={{ width: viewportWidth, marginRight: i === tasks.length - 1 ? 0 : SPACING_PX }}
+            >
               <TaskCard
                 task={task}
                 completed={completedIds.includes(task.id)}
