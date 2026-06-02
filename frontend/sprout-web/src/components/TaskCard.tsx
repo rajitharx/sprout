@@ -22,18 +22,21 @@ export function TaskCard({ task, completed, gradientIndex, isActive }: Props) {
 
   return (
     <div
-      className={`h-full w-full flex flex-col items-center justify-center rounded-3xl bg-gradient-to-br ${gradient} relative overflow-hidden select-none`}
+      className={`h-full w-full flex flex-col items-center justify-center rounded-3xl bg-gradient-to-br ${gradient} relative overflow-visible select-none`}
     >
+      <div className="relative mb-4">
+        <span
+          className={`text-[96px] leading-none block ${isActive && !completed ? 'animate-float' : 'animate-float-paused'}`}
+        >
+          {emoji}
+        </span>
+        {completed && (
+          <span className="absolute -top-2 -right-2 text-[48px] drop-shadow-lg">✅</span>
+        )}
+      </div>
       {completed && (
-        <div className="absolute inset-0 bg-green-400/20 rounded-3xl flex items-center justify-center">
-          <span className="text-[64px]">✅</span>
-        </div>
+        <div className="absolute inset-0 bg-green-400/10 rounded-3xl pointer-events-none" />
       )}
-      <span
-        className={`text-[96px] leading-none mb-4 ${isActive && !completed ? 'animate-float' : 'animate-float-paused'}`}
-      >
-        {emoji}
-      </span>
       <span className="text-xl font-semibold text-gray-600 text-center px-6">
         {task.label}
       </span>
