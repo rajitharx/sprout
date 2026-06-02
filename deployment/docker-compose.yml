@@ -1,0 +1,26 @@
+version: '3.8'
+
+services:
+  sprout:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: sprout-app
+    ports:
+      - "5000:5000"
+    volumes:
+      - sprout-storage:/app/Storage
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Production
+      - ASPNETCORE_URLS=http://+:5000
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:5000/health"]
+      interval: 30s
+      timeout: 3s
+      retries: 3
+      start_period: 5s
+
+volumes:
+  sprout-storage:
+    driver: local

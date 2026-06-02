@@ -98,6 +98,41 @@ dotnet run
 
 The API serves the built frontend as static files and falls back to `index.html` for all non-API routes.
 
+### Docker deployment
+
+A single Docker container bundles both frontend and backend for production deployment.
+
+**Build & run locally:**
+
+```bash
+docker compose up -d
+```
+
+**Deploy to Linux server:**
+
+1. Copy the project to your server:
+
+```bash
+rsync -av --exclude=node_modules --exclude=bin --exclude=obj --exclude=.git \
+  /path/to/sprout/ user@server:/home/user/sprout/
+```
+
+2. On the server:
+
+```bash
+cd /home/user/sprout
+docker compose up -d
+```
+
+The app runs on `http://server:5000` with persistent storage in the `sprout-storage` Docker volume.
+
+**Deployment files:**
+
+- `Dockerfile` — Multi-stage build (frontend Node → backend .NET)
+- `docker-compose.yml` — Container orchestration + volume management
+- `.dockerignore` — Build optimization
+- `deployment/` — Helper scripts and documentation
+
 ---
 
 ## API Reference
