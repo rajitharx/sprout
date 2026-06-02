@@ -6,7 +6,9 @@
       "Bash(npx vite *)",
       "Bash(chmod +x /Users/rajitha/Development/sprout/run.sh)",
       "Bash(dotnet run *)",
-      "Bash(dotnet test *)"
+      "Bash(dotnet test *)",
+      "Bash(npx --yes playwright@latest install chromium)",
+      "Bash(node /tmp/verify_checkmark.js)"
     ]
   }
 }
