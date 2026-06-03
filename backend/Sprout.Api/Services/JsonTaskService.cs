@@ -8,6 +8,8 @@ public class JsonTaskService : ITaskService
     private readonly string _path;
     private readonly SemaphoreSlim _lock = new(1, 1);
     private bool _seeded = false;
+    private readonly ILogger<JsonTaskService> _logger;
+    private readonly bool _logServiceCalls;
 
     private static readonly JsonSerializerOptions _options = new()
     {
@@ -16,8 +18,10 @@ public class JsonTaskService : ITaskService
         PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
     };
 
-    public JsonTaskService(IConfiguration config)
+    public JsonTaskService(IConfiguration config, ILogger<JsonTaskService> logger)
     {
+        _logger = logger;
+        _logServiceCalls = config.GetSection("Debug").GetValue<bool>("LogServiceCalls");
         var dataPath = config["Storage:DataPath"] ?? "Storage/data";
         Directory.CreateDirectory(dataPath);
         _path = Path.Combine(dataPath, "tasks.json");
@@ -66,13 +70,17 @@ public class JsonTaskService : ITaskService
     {
         await EnsureSeededAsync();
         var data = await ReadFileAsync();
-        return [.. data.Where(t => t.IsActive).OrderBy(t => t.SortOrder)];
+        var result = data.Where(t => t.IsActive).OrderBy(t => t.SortOrder).ToList();
+        if (_logServiceCalls) _logger.LogDebug("📖 GetAllAsync returned {Count} tasks", result.Count);
+        return result;
     }
 
     public async Task<HabitTask?> GetByIdAsync(string id)
     {
         var data = await ReadFileAsync();
-        return data.FirstOrDefault(t => t.Id == id);
+        var result = data.FirstOrDefault(t => t.Id == id);
+        if (_logServiceCalls) _logger.LogDebug("📖 GetByIdAsync({Id}) returned {Found}", id, result != null ? "found" : "not found");
+        return result;
     }
 
     public async Task<HabitTask> CreateAsync(HabitTask task)
@@ -83,6 +91,8 @@ public class JsonTaskService : ITaskService
             var data = await ReadFileAsync();
             data.Add(task);
             await WriteFileAsync(data);
+            _logger.LogInformation("✏️ Task created: {Label} ({Emoji})", task.Label, task.Emoji);
+            if (_logServiceCalls) _logger.LogDebug("  Task ID: {Id}, SortOrder: {SortOrder}", task.Id, task.SortOrder);
             return task;
         }
         finally
@@ -98,10 +108,16 @@ public class JsonTaskService : ITaskService
         {
             var data = await ReadFileAsync();
             var index = data.FindIndex(t => t.Id == id);
-            if (index < 0) return null;
+            if (index < 0)
+            {
+                if (_logServiceCalls) _logger.LogDebug("⚠️ UpdateAsync({Id}) not found", id);
+                return null;
+            }
             var updated = task with { Id = id };
             data[index] = updated;
             await WriteFileAsync(data);
+            _logger.LogInformation("✏️ Task updated: {Label} ({Emoji})", updated.Label, updated.Emoji);
+            if (_logServiceCalls) _logger.LogDebug("  Task ID: {Id}, Active: {IsActive}", id, updated.IsActive);
             return updated;
         }
         finally
@@ -117,9 +133,15 @@ public class JsonTaskService : ITaskService
         {
             var data = await ReadFileAsync();
             var index = data.FindIndex(t => t.Id == id);
-            if (index < 0) return false;
+            if (index < 0)
+            {
+                if (_logServiceCalls) _logger.LogDebug("⚠️ DeleteAsync({Id}) not found", id);
+                return false;
+            }
+            var task = data[index];
             data[index] = data[index] with { IsActive = false };
             await WriteFileAsync(data);
+            _logger.LogInformation("🗑️ Task deleted: {Label}", task.Label);
             return true;
         }
         finally

@@ -25,5 +25,13 @@
       "default-3"
     ],
     "lastUpdated": "2026-06-02T02:25:02.708414Z"
+  },
+  {
+    "date": "2026-06-03",
+    "completedTaskIds": [
+      "default-1",
+      "nonexistent-task-id"
+    ],
+    "lastUpdated": "2026-06-03T03:14:45.64683Z"
   }
 ]

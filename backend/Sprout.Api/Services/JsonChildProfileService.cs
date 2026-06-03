@@ -7,6 +7,8 @@ public class JsonChildProfileService : IChildProfileService
 {
     private readonly string _filePath;
     private static readonly SemaphoreSlim _lock = new(1, 1);
+    private readonly ILogger<JsonChildProfileService> _logger;
+    private readonly bool _logServiceCalls;
     private static readonly JsonSerializerOptions _options = new()
     {
         WriteIndented = true,
@@ -14,8 +16,10 @@ public class JsonChildProfileService : IChildProfileService
         PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
     };
 
-    public JsonChildProfileService(IConfiguration config)
+    public JsonChildProfileService(IConfiguration config, ILogger<JsonChildProfileService> logger)
     {
+        _logger = logger;
+        _logServiceCalls = config.GetSection("Debug").GetValue<bool>("LogServiceCalls");
         var dataPath = config["Storage:DataPath"] ?? "Storage/data";
         _filePath = Path.Combine(dataPath, "profile.json");
     }
@@ -24,6 +28,7 @@ public class JsonChildProfileService : IChildProfileService
     {
         if (!File.Exists(_filePath))
         {
+            if (_logServiceCalls) _logger.LogDebug("👶 GetAsync no profile found, returning default");
             return new ChildProfile();
         }
 
@@ -31,10 +36,13 @@ public class JsonChildProfileService : IChildProfileService
         {
             var json = await File.ReadAllTextAsync(_filePath);
             var profile = JsonSerializer.Deserialize<ChildProfile>(json, _options);
-            return profile ?? new ChildProfile();
+            var result = profile ?? new ChildProfile();
+            if (_logServiceCalls) _logger.LogDebug("👶 GetAsync loaded profile: {Name} {Avatar}", result.Name, result.Avatar);
+            return result;
         }
-        catch
+        catch (Exception ex)
         {
+            _logger.LogError(ex, "❌ GetAsync failed to deserialize profile");
             return new ChildProfile();
         }
     }
@@ -52,7 +60,13 @@ public class JsonChildProfileService : IChildProfileService
 
             var json = JsonSerializer.Serialize(profile, _options);
             await File.WriteAllTextAsync(_filePath, json);
+            _logger.LogInformation("👶 Child profile updated: {Name} {Avatar}", profile.Name, profile.Avatar);
             return profile;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "❌ UpdateAsync failed to save profile");
+            throw;
         }
         finally
         {
