@@ -1,4 +1,5 @@
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Logging;
 using Sprout.Api.Models;
 using Sprout.Api.Services;
 using Xunit;
@@ -8,17 +9,20 @@ namespace Sprout.Api.Tests;
 public class JsonTaskServiceTests : IDisposable
 {
     private readonly string _tempDir;
+    private readonly ILogger<JsonTaskService> _logger;
 
     public JsonTaskServiceTests()
     {
         _tempDir = Path.Combine(Path.GetTempPath(), "sprout-task-tests-" + Guid.NewGuid().ToString("N"));
         Directory.CreateDirectory(_tempDir);
+        var loggerFactory = LoggerFactory.Create(builder => builder.AddConsole());
+        _logger = loggerFactory.CreateLogger<JsonTaskService>();
     }
 
     private JsonTaskService CreateService() =>
         new(new ConfigurationBuilder()
             .AddInMemoryCollection(new Dictionary<string, string?> { ["Storage:DataPath"] = _tempDir })
-            .Build());
+            .Build(), _logger);
 
     public void Dispose()
     {

@@ -47,5 +47,26 @@
     "emoji": "\uD83D\uDCDA",
     "sortOrder": 6,
     "isActive": true
+  },
+  {
+    "id": "bc66955a-62b9-490f-931d-c82557abe628",
+    "label": "Test Task",
+    "emoji": "\uD83E\uDDEA",
+    "sortOrder": 99,
+    "isActive": true
+  },
+  {
+    "id": "c6f6b865-0a17-48ff-b6f6-8eb247a98031",
+    "label": "Brush Teeth",
+    "emoji": "\uD83E\uDEA5",
+    "sortOrder": 0,
+    "isActive": true
+  },
+  {
+    "id": "969a373a-43a1-45f8-84ce-5edeaee2691d",
+    "label": "Get Dressed",
+    "emoji": "\uD83D\uDC55",
+    "sortOrder": 1,
+    "isActive": true
   }
 ]

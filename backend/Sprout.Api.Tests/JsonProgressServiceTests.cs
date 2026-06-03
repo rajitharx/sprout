@@ -1,4 +1,5 @@
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Logging;
 using Sprout.Api.Services;
 using Xunit;
 
@@ -8,17 +9,20 @@ public class JsonProgressServiceTests : IDisposable
 {
     private readonly string _tempDir;
     private readonly TestSystemClock _clock = new(new DateOnly(2026, 5, 30));
+    private readonly ILogger<JsonProgressService> _logger;
 
     public JsonProgressServiceTests()
     {
         _tempDir = Path.Combine(Path.GetTempPath(), "sprout-progress-tests-" + Guid.NewGuid().ToString("N"));
         Directory.CreateDirectory(_tempDir);
+        var loggerFactory = LoggerFactory.Create(builder => builder.AddConsole());
+        _logger = loggerFactory.CreateLogger<JsonProgressService>();
     }
 
     private JsonProgressService CreateService() =>
         new(new ConfigurationBuilder()
             .AddInMemoryCollection(new Dictionary<string, string?> { ["Storage:DataPath"] = _tempDir })
-            .Build(), _clock);
+            .Build(), _clock, _logger);
 
     public void Dispose()
     {
