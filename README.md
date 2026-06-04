@@ -215,6 +215,61 @@ Storage__DataPath=/var/sprout-data dotnet run
 
 ---
 
+## Logging & Debugging
+
+The API includes configurable logging for debugging and monitoring. Logging is controlled via `appsettings.json` or environment variables.
+
+### Debug Configuration Options
+
+```json
+{
+  "Debug": {
+    "Enabled": false,
+    "LogRequests": false,
+    "LogServiceCalls": false,
+    "LogExceptions": true
+  }
+}
+```
+
+| Option | Purpose | Default |
+|---|---|---|
+| `Debug.Enabled` | Master switch to enable debug mode | `false` |
+| `Debug.LogRequests` | Log all incoming HTTP requests with response times | `false` |
+| `Debug.LogServiceCalls` | Log service-layer operations (task, progress, profile) | `false` |
+| `Debug.LogExceptions` | Log unhandled exceptions with full error details | `true` |
+
+### Enable Debug Logging
+
+**Via environment variable (development):**
+
+```bash
+cd backend/Sprout.Api
+Debug__Enabled=true Debug__LogRequests=true dotnet run
+```
+
+**Via appsettings.Development.json (persistent):**
+
+Edit `appsettings.Development.json`:
+
+```json
+{
+  "Debug": {
+    "Enabled": true,
+    "LogRequests": true,
+    "LogServiceCalls": false,
+    "LogExceptions": true
+  }
+}
+```
+
+### Middleware
+
+- **ExceptionHandlingMiddleware** — Catches unhandled exceptions globally and returns a 500 error. Includes error details in the response if `LogExceptions` is enabled.
+- **RequestLoggingMiddleware** — Logs request method, path, response status, and elapsed time. Only active if `LogRequests` is enabled.
+
+---
+
 ## Running Tests
 
 ```bash
