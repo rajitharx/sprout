@@ -4,7 +4,7 @@
 
 ---
 
-## ✅ Completed (Sprint 0–3)
+## ✅ Completed (Sprint 0–4)
 
 ### Backend (Sprout.Api)
 - [x] .NET 10 Minimal API structure with `Program.cs` endpoint registration
@@ -20,6 +20,13 @@
   - Task service and endpoint tests ✅
   - Progress service and endpoint tests ✅
   - Profile service tests ✅
+  - Authentication service and endpoint tests ✅
+- [x] Parent authentication (PIN)
+  - `IAuthenticationService` with configuration-based PIN validation
+  - PIN stored in `appsettings.json` (default: 1234)
+  - `/api/auth/validate-pin` endpoint
+  - `PinAuthModal` component with numeric input
+  - PIN validation on parent panel access
 
 ### Frontend (sprout-web)
 - [x] React 18 + TypeScript + Vite + Tailwind v4 setup
@@ -152,6 +159,14 @@
   - Chevron arrows fade on longer task lists
 
 ### Parent Panel Enhancements
+- [x] **Parent auth (PIN)**
+  - PIN unlock for parent panel ✅
+  - Currently stored in configuration file (appsettings.json)
+  - **TODO (Phase 3 - DB Migration):** Move PIN validation to database
+    - Store PIN securely in database (hashed with salt)
+    - Update `IAuthenticationService` to read from DB instead of config
+    - Allow parent to change PIN in settings
+    - Support parent-specific PIN per child profile
 - [ ] **Drag-to-reorder tasks**
   - Visual drag handle (≡) beside each task
   - Update `sortOrder` on drop
@@ -166,9 +181,8 @@
   - Morning routine (6am–9am)
   - Evening routine (6pm–8pm)
   - Mark due/overdue in child view
-- [ ] **Parent auth (optional)**
-  - PIN or fingerprint unlock for parent panel
-  - Parental controls: lock task editing
+- [ ] **Parental controls (future)**
+  - Lock task editing after certain time
   - Child can't re-enter parent view after panel closes
 
 ### Notifications & Reminders
@@ -200,10 +214,15 @@
   - Keep identical interface → no frontend changes
   - Migration script from `progress.json` to DB
   - Indexes on date, taskId, childId
+  - **PIN validation database schema:**
+    - `parent_auth` table with: `id`, `parent_pin_hash`, `parent_pin_salt`, `created_at`
+    - Update `IAuthenticationService` to use database-backed PIN validation
+    - Implement PIN hash verification (bcrypt or similar)
 - [ ] **Multi-child support**
   - Add `ChildProfile` lookup by ID
   - Progress tied to child (childId foreign key)
   - Parent manages multiple children
+  - Each child can have separate PIN (optional)
 - [ ] **Real-time sync** (optional)
   - WebSocket or Server-Sent Events
   - Live updates: child completes → parent sees immediately

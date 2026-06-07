@@ -53,4 +53,11 @@ export const api = {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(profile),
     }).then(r => json<ChildProfile>(r)),
+
+  validatePin: (pin: string) =>
+    fetch('/api/auth/validate-pin', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ pin }),
+    }).then(r => json<{ valid: boolean }>(r)),
 };

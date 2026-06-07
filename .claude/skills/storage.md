@@ -11,7 +11,8 @@ Sprout.Api/
 └── Storage/
     └── data/
         ├── tasks.json      ← array of HabitTask
-        └── progress.json   ← array of DailyProgress (one per calendar day)
+        ├── progress.json   ← array of DailyProgress (one per calendar day)
+        └── profile.json    ← single ChildProfile object (name + avatar emoji)
 ```
 
 The path is configurable via `appsettings.json`:
@@ -75,6 +76,8 @@ One object per calendar day. If a day has no completions, no entry is needed (tr
 ## Soft Delete
 
 Tasks are never hard-deleted from `tasks.json`. Deleting a task sets `isActive: false`.
+
+**Stale ID implication:** Because `completedTaskIds` in `progress.json` stores raw IDs forever, a soft-deleted task's ID can remain in historical progress records. When checking whether all tasks are complete, you must filter `completedTaskIds` against only the currently active task IDs — not just compare counts. See `useProgress.markComplete` which takes `taskIds: string[]` for this reason.
 
 ```csharp
 // JsonTaskService.DeleteAsync

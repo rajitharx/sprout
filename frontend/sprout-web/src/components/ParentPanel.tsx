@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import type { HabitTask, ChildProfile } from '../types';
 
 const EMOJI_OPTIONS = [
@@ -32,6 +32,16 @@ function TrashIcon() {
   );
 }
 
+function GripIcon() {
+  return (
+    <svg className="w-5 h-5" viewBox="0 0 24 24" fill="currentColor">
+      <circle cx="9" cy="7" r="1.5"/><circle cx="15" cy="7" r="1.5"/>
+      <circle cx="9" cy="12" r="1.5"/><circle cx="15" cy="12" r="1.5"/>
+      <circle cx="9" cy="17" r="1.5"/><circle cx="15" cy="17" r="1.5"/>
+    </svg>
+  );
+}
+
 interface Props {
   tasks: HabitTask[];
   profile: ChildProfile;
@@ -53,11 +63,26 @@ export function ParentPanel({ tasks, profile, onBack, onCreate, onUpdate, onDele
   const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
 
+  // Local ordered copy for drag reorder
+  const [localTasks, setLocalTasks] = useState<HabitTask[]>([]);
+  const [dragIndex, setDragIndex] = useState<number | null>(null);
+  const [overIndex, setOverIndex] = useState<number | null>(null);
+  const dragIndexRef = useRef<number | null>(null);
+  const overIndexRef = useRef<number | null>(null);
+  const rowRefs = useRef<(HTMLDivElement | null)[]>([]);
+
+  // Sync from props only when not dragging
+  useEffect(() => {
+    if (dragIndexRef.current === null) {
+      setLocalTasks([...tasks].sort((a, b) => a.sortOrder - b.sortOrder));
+    }
+  }, [tasks]);
+
   const handleCreate = async () => {
     if (!label.trim()) return;
     setBusy(true);
     try {
-      await onCreate({ label: label.trim(), emoji, sortOrder: tasks.length, isActive: true });
+      await onCreate({ label: label.trim(), emoji, sortOrder: localTasks.length, isActive: true });
       setLabel('');
     } finally {
       setBusy(false);
@@ -97,6 +122,62 @@ export function ParentPanel({ tasks, profile, onBack, onCreate, onUpdate, onDele
     setBusy(true);
     try {
       await onUpdateProfile({ name: profileName.trim(), avatar: profileAvatar });
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  // Drag handlers — pointer capture keeps events on the handle during touch/mouse drag
+  const onHandlePointerDown = (e: React.PointerEvent<HTMLButtonElement>, index: number) => {
+    e.currentTarget.setPointerCapture(e.pointerId);
+    dragIndexRef.current = index;
+    overIndexRef.current = index;
+    setDragIndex(index);
+    setOverIndex(index);
+  };
+
+  const onHandlePointerMove = (e: React.PointerEvent<HTMLButtonElement>) => {
+    if (dragIndexRef.current === null) return;
+    const y = e.clientY;
+    for (let i = 0; i < rowRefs.current.length; i++) {
+      const el = rowRefs.current[i];
+      if (!el) continue;
+      const rect = el.getBoundingClientRect();
+      if (y >= rect.top && y < rect.bottom) {
+        if (i !== overIndexRef.current) {
+          overIndexRef.current = i;
+          setOverIndex(i);
+        }
+        break;
+      }
+    }
+  };
+
+  const onHandlePointerUp = async (e: React.PointerEvent<HTMLButtonElement>) => {
+    e.currentTarget.releasePointerCapture(e.pointerId);
+    const from = dragIndexRef.current;
+    const to = overIndexRef.current;
+    dragIndexRef.current = null;
+    overIndexRef.current = null;
+    setDragIndex(null);
+    setOverIndex(null);
+
+    if (from === null || to === null || from === to) return;
+
+    const reordered = [...localTasks];
+    const [moved] = reordered.splice(from, 1);
+    reordered.splice(to, 0, moved);
+    const withOrder = reordered.map((t, i) => ({ ...t, sortOrder: i }));
+    setLocalTasks(withOrder);
+
+    setBusy(true);
+    try {
+      for (const t of withOrder) {
+        const orig = tasks.find(o => o.id === t.id);
+        if (orig && orig.sortOrder !== t.sortOrder) {
+          await onUpdate(t.id, t);
+        }
+      }
     } finally {
       setBusy(false);
     }
@@ -155,10 +236,20 @@ export function ParentPanel({ tasks, profile, onBack, onCreate, onUpdate, onDele
         </div>
 
         {/* Task list */}
-        {tasks.map(task => (
-          <div key={task.id} className="bg-white rounded-2xl p-4 shadow-sm">
+        {localTasks.map((task, i) => (
+          <div
+            key={task.id}
+            ref={el => { rowRefs.current[i] = el; }}
+            className={`bg-white rounded-2xl shadow-sm transition-all duration-150 ${
+              dragIndex === i ? 'opacity-40 scale-[0.98]' : ''
+            } ${
+              overIndex === i && dragIndex !== null && dragIndex !== i
+                ? 'ring-2 ring-orange-300'
+                : ''
+            }`}
+          >
             {editingId === task.id ? (
-              <div className="space-y-3">
+              <div className="p-4 space-y-3">
                 <div>
                   <label className={labelClass} htmlFor={`edit-label-${task.id}`}>Task name</label>
                   <div className="flex gap-2 items-center">
@@ -203,7 +294,20 @@ export function ParentPanel({ tasks, profile, onBack, onCreate, onUpdate, onDele
                 </div>
               </div>
             ) : (
-              <div className="flex items-center gap-3">
+              <div className="flex items-center gap-2 px-4 py-3">
+                {/* Drag handle */}
+                <button
+                  aria-label="Drag to reorder"
+                  disabled={busy || editingId !== null}
+                  onPointerDown={e => onHandlePointerDown(e, i)}
+                  onPointerMove={onHandlePointerMove}
+                  onPointerUp={onHandlePointerUp}
+                  className="min-h-[44px] min-w-[36px] flex items-center justify-center text-gray-300 disabled:opacity-30 cursor-grab active:cursor-grabbing touch-none"
+                  style={{ touchAction: 'none' }}
+                >
+                  <GripIcon />
+                </button>
+
                 <span className="text-3xl shrink-0">{task.emoji || '📋'}</span>
                 <span className="flex-1 text-base font-medium text-gray-700 min-w-0 truncate">{task.label}</span>
 
@@ -247,7 +351,7 @@ export function ParentPanel({ tasks, profile, onBack, onCreate, onUpdate, onDele
           </div>
         ))}
 
-        {tasks.length === 0 && (
+        {localTasks.length === 0 && (
           <div className="flex flex-col items-center gap-2 py-10 text-gray-400">
             <span className="text-5xl">🌱</span>
             <p className="text-base font-medium">No tasks yet. Add one below!</p>
