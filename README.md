@@ -10,16 +10,21 @@ A gamified daily habit tracker for toddlers (ages 3–4). The child taps through
 - Welcome overlay on every load — greets the child by name with their avatar
 - Customizable child profile with name and avatar emoji
 - Swipeable task carousel — one big card per habit, no reading required
-- Emoji-first design with giant tap targets
+- Emoji-first design with giant tap targets, colour-coded gradient cards
+- Star collection animation — pressing "I did it!" sends star particles flying up to the profile avatar, which bounces on arrival
+- Completed tasks turn green to match the done button; progress bar and counter update in real time
 - Celebration overlay when all tasks are complete
 - Streak bar showing the current week (Monday–Sunday)
 - Offline-capable — falls back to `localStorage` cache if the API is unreachable
+- Respects `prefers-reduced-motion` — all animations disabled when the system setting is on
 
 **Parent view**
 - Unlocked via a discreet tap (no password, no auth complexity)
 - Edit child profile (name and avatar emoji)
 - Create, edit, reorder, and deactivate tasks
 - Each task has a label, emoji, and sort order
+- Inline delete confirmation to prevent accidental removal
+- All form inputs have visible labels for accessibility
 
 ---
 
@@ -293,5 +298,9 @@ Tests use `WebApplicationFactory` to run the full API in-process against real JS
 **Child profile** — stored persistently via `IProfileService`, allowing parents to customize the child's name and avatar emoji.
 
 **No router** — view switching between child and parent is a single `useState` in `App.tsx`. No router library needed.
+
+**Animations are pure CSS** — all keyframes live in `index.css` (`float`, `bounce`, `confettiFall`, `pulseGlow`, `ripple`, `starFly`, `avatarPop`). DOM-spawned particles (stars, confetti) are created imperatively and removed after their animation completes. No Framer Motion, GSAP, or confetti packages.
+
+**All-complete detection** — `useProgress.markComplete` receives the full list of active task IDs and only counts completions against that set. This prevents stale IDs from deleted tasks inflating the count and falsely triggering the celebration overlay.
 
 **Offline fallback** — `useTasks`, `useProgress`, and `useProfile` write to `localStorage` on every successful fetch. If the API is unreachable on load, the cached data is used so the child view always renders.

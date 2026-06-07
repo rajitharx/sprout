@@ -20,15 +20,16 @@ export function useProgress(onAllComplete?: () => void) {
     return () => clearInterval(interval);
   }, [fetchAll]);
 
-  const markComplete = useCallback(async (taskId: string, totalTasks: number) => {
+  const markComplete = useCallback(async (taskId: string, taskIds: string[]) => {
     setToday(prev => {
       if (!prev) return prev;
       if (prev.completedTaskIds.includes(taskId)) return prev;
       const next = { ...prev, completedTaskIds: [...prev.completedTaskIds, taskId] };
-      if (next.completedTaskIds.length === totalTasks && onAllComplete) {
+      const activeCompleted = next.completedTaskIds.filter(id => taskIds.includes(id));
+      if (activeCompleted.length === taskIds.length && onAllComplete) {
         onAllComplete();
       }
-      prevCompletedCount.current = next.completedTaskIds.length;
+      prevCompletedCount.current = activeCompleted.length;
       return next;
     });
     try {

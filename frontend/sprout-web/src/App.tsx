@@ -62,7 +62,7 @@ export function App() {
       if (currentTaskCompleted) {
         await markIncomplete(currentTask.id);
       } else {
-        await markComplete(currentTask.id, tasks.length);
+        await markComplete(currentTask.id, tasks.map(t => t.id));
         if (currentIndex < tasks.length - 1) {
           setTimeout(() => setCurrentIndex(i => i + 1), 400);
         }
