@@ -7,6 +7,7 @@ A gamified daily habit tracker for toddlers (ages 3–4). The child taps through
 ## Features
 
 **Child view**
+- Welcome overlay on every load — greets the child by name with their avatar
 - Customizable child profile with name and avatar emoji
 - Swipeable task carousel — one big card per habit, no reading required
 - Emoji-first design with giant tap targets
