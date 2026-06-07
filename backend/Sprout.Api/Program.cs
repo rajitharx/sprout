@@ -7,6 +7,7 @@ builder.Services.AddSingleton<ISystemClock, SystemClock>();
 builder.Services.AddSingleton<ITaskService, JsonTaskService>();
 builder.Services.AddSingleton<IProgressService, JsonProgressService>();
 builder.Services.AddSingleton<IChildProfileService, JsonChildProfileService>();
+builder.Services.AddSingleton<IAuthenticationService, ConfigurationAuthenticationService>();
 builder.Services.AddCors();
 
 var app = builder.Build();
@@ -40,6 +41,7 @@ if (app.Environment.IsDevelopment())
 
 app.UseStaticFiles();
 
+app.MapAuthenticationEndpoints();
 app.MapTaskEndpoints();
 app.MapProgressEndpoints();
 app.MapChildProfileEndpoints();

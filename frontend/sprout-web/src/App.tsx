@@ -7,6 +7,7 @@ import { TaskCarousel } from './components/TaskCarousel';
 import { DoneButton } from './components/DoneButton';
 import { CelebrationOverlay } from './components/CelebrationOverlay';
 import { ParentPanel } from './components/ParentPanel';
+import { PinAuthModal } from './components/PinAuthModal';
 
 type View = 'child' | 'parent';
 
@@ -17,6 +18,7 @@ export function App() {
   const [toast, setToast] = useState<string | null>(null);
   const [welcomeState, setWelcomeState] = useState<'visible' | 'hiding' | 'hidden'>('visible');
   const [avatarFlash, setAvatarFlash] = useState(false);
+  const [isPinAuthenticated, setIsPinAuthenticated] = useState(false);
 
   const showToast = useCallback((msg: string) => {
     setToast(msg);
@@ -73,11 +75,25 @@ export function App() {
   };
 
   if (view === 'parent') {
+    if (!isPinAuthenticated) {
+      return (
+        <>
+          <PinAuthModal onSuccess={() => setIsPinAuthenticated(true)} />
+          <div className="h-[100dvh] flex flex-col bg-white overflow-hidden opacity-50 pointer-events-none">
+            <StreakBar week={week} />
+          </div>
+        </>
+      );
+    }
+
     return (
       <ParentPanel
         tasks={tasks}
         profile={profile}
-        onBack={() => setView('child')}
+        onBack={() => {
+          setView('child');
+          setIsPinAuthenticated(false);
+        }}
         onCreate={createTask}
         onUpdate={updateTask}
         onDelete={deleteTask}
@@ -91,7 +107,10 @@ export function App() {
       <div className="relative">
         <StreakBar week={week} />
         <button
-          onClick={() => setView('parent')}
+          onClick={() => {
+            setIsPinAuthenticated(false);
+            setView('parent');
+          }}
           aria-label="Open parent settings"
           className="absolute top-2 right-3 opacity-25 p-2 rounded-lg active:opacity-70 cursor-pointer text-gray-600"
         >
