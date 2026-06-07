@@ -8,7 +8,8 @@
       "Bash(dotnet run *)",
       "Bash(dotnet test *)",
       "Bash(npx --yes playwright@latest install chromium)",
-      "Bash(node /tmp/verify_checkmark.js)"
+      "Bash(node /tmp/verify_checkmark.js)",
+      "Bash(~/.local/bin/graphify query *)"
     ]
   }
 }
