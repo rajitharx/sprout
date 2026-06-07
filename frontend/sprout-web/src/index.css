@@ -76,3 +76,16 @@ button {
 .animate-welcome-out {
   animation: welcomeFadeOut 0.4s ease-in forwards;
 }
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-float,
+  .animate-float-paused,
+  .animate-bounce-trophy,
+  .animate-pulse-glow,
+  .animate-welcome-in,
+  .animate-welcome-out,
+  .animate-celebration-pop {
+    animation: none !important;
+    transform: none !important;
+  }
+}
