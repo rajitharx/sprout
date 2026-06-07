@@ -35,6 +35,16 @@ button {
   100% { transform: scale(1); opacity: 1; }
 }
 
+@keyframes welcomeFadeIn {
+  0% { opacity: 0; transform: scale(0.9); }
+  100% { opacity: 1; transform: scale(1); }
+}
+
+@keyframes welcomeFadeOut {
+  0% { opacity: 1; transform: scale(1); }
+  100% { opacity: 0; transform: scale(1.05); }
+}
+
 .animate-float {
   animation: float 3s ease-in-out infinite;
   will-change: transform;
@@ -57,4 +67,12 @@ button {
 
 .animate-celebration-pop {
   animation: celebrationPop 0.45s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+}
+
+.animate-welcome-in {
+  animation: welcomeFadeIn 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+}
+
+.animate-welcome-out {
+  animation: welcomeFadeOut 0.4s ease-in forwards;
 }

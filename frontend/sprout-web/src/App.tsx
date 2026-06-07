@@ -15,6 +15,7 @@ export function App() {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [showCelebration, setShowCelebration] = useState(false);
   const [toast, setToast] = useState<string | null>(null);
+  const [welcomeState, setWelcomeState] = useState<'visible' | 'hiding' | 'hidden'>('visible');
 
   const showToast = useCallback((msg: string) => {
     setToast(msg);
@@ -26,8 +27,18 @@ export function App() {
   }, []);
 
   const { tasks, loading, createTask, updateTask, deleteTask } = useTasks();
-  const { profile, updateProfile } = useProfile();
+  const { profile, loading: profileLoading, updateProfile } = useProfile();
   const { today, week, markComplete, markIncomplete } = useProgress(handleAllComplete);
+
+  useEffect(() => {
+    if (profileLoading) return;
+    const dismiss = () => {
+      setWelcomeState('hiding');
+      setTimeout(() => setWelcomeState('hidden'), 400);
+    };
+    const timer = setTimeout(dismiss, 2500);
+    return () => clearTimeout(timer);
+  }, [profileLoading]);
 
   const completedIds = today?.completedTaskIds ?? [];
   const currentTask = tasks[currentIndex] ?? null;
@@ -104,6 +115,20 @@ export function App() {
 
       {showCelebration && (
         <CelebrationOverlay onDismiss={() => setShowCelebration(false)} />
+      )}
+
+      {welcomeState !== 'hidden' && (
+        <div
+          className={`fixed inset-0 flex flex-col items-center justify-center bg-yellow-50 z-50 ${welcomeState === 'hiding' ? 'animate-welcome-out' : 'animate-welcome-in'}`}
+          onClick={() => {
+            setWelcomeState('hiding');
+            setTimeout(() => setWelcomeState('hidden'), 400);
+          }}
+        >
+          <div className="text-8xl mb-6 animate-float">{profile.avatar}</div>
+          <p className="text-4xl font-bold text-yellow-600 tracking-tight">Welcome,</p>
+          <p className="text-5xl font-black text-yellow-500 mt-1">{profile.name}! 🌱</p>
+        </div>
       )}
 
       {toast && (
