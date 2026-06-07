@@ -10,9 +10,10 @@ interface Props {
   completedIds: string[];
   currentIndex: number;
   onIndexChange: (index: number) => void;
+  avatarFlash: boolean;
 }
 
-export function TaskCarousel({ profile, tasks, completedIds, currentIndex, onIndexChange }: Props) {
+export function TaskCarousel({ profile, tasks, completedIds, currentIndex, onIndexChange, avatarFlash }: Props) {
   const pointerStartX = useRef<number | null>(null);
   const SPACING_PX = 16;
   const viewportRef = useRef<HTMLDivElement | null>(null);
@@ -62,7 +63,9 @@ export function TaskCarousel({ profile, tasks, completedIds, currentIndex, onInd
     <div className="flex-1 flex flex-col overflow-hidden relative px-4 pb-2">
       {/* Profile header with progress */}
       <div className="flex items-center gap-3 py-3 px-1">
-        <span className="text-5xl leading-none">{profile.avatar}</span>
+        <span key={avatarFlash ? 'flash' : 'idle'} className={`text-5xl leading-none ${avatarFlash ? 'animate-avatar-pop' : ''}`}>
+          {profile.avatar}
+        </span>
         <div className="flex-1 min-w-0">
           <p className="text-xl font-bold text-gray-700 leading-tight truncate">{profile.name}</p>
           <div className="flex items-center gap-2 mt-1">

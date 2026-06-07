@@ -16,6 +16,7 @@ export function App() {
   const [showCelebration, setShowCelebration] = useState(false);
   const [toast, setToast] = useState<string | null>(null);
   const [welcomeState, setWelcomeState] = useState<'visible' | 'hiding' | 'hidden'>('visible');
+  const [avatarFlash, setAvatarFlash] = useState(false);
 
   const showToast = useCallback((msg: string) => {
     setToast(msg);
@@ -24,6 +25,11 @@ export function App() {
 
   const handleAllComplete = useCallback(() => {
     setShowCelebration(true);
+  }, []);
+
+  const handleStarsReach = useCallback(() => {
+    setAvatarFlash(true);
+    setTimeout(() => setAvatarFlash(false), 600);
   }, []);
 
   const { tasks, loading, createTask, updateTask, deleteTask } = useTasks();
@@ -107,6 +113,7 @@ export function App() {
           completedIds={completedIds}
           currentIndex={currentIndex}
           onIndexChange={setCurrentIndex}
+          avatarFlash={avatarFlash}
         />
       )}
 
@@ -114,6 +121,7 @@ export function App() {
         onDone={handleDone}
         completed={currentTaskCompleted}
         disabled={loading || !currentTask}
+        onStarsReach={handleStarsReach}
       />
 
       {showCelebration && (
