@@ -36,6 +36,9 @@ Sprout.Api/Storage/data/progress.json
 # Production static output
 Sprout.Api/wwwroot/
 
+# IDE metadata
+.idea/
+
 # External tools (not part of this project)
 graphify/
 graphify-out/
