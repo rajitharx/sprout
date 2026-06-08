@@ -50,14 +50,19 @@ export function CelebrationOverlay({ onDismiss }: Props) {
     <div
       ref={containerRef}
       className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-gradient-to-br from-yellow-300 to-orange-400 overflow-hidden"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="celebration-title"
+      aria-describedby="celebration-message"
     >
       <div className="animate-celebration-pop flex flex-col items-center gap-6">
-        <span className="text-[120px] leading-none animate-bounce-trophy">🏆</span>
-        <p className="text-5xl font-black text-white drop-shadow-lg">All Done!</p>
-        <p className="text-2xl text-yellow-100 font-semibold">Amazing job today! 🌟</p>
+        <span className="text-[120px] leading-none animate-bounce-trophy" aria-hidden="true">🏆</span>
+        <h1 id="celebration-title" className="text-5xl font-black text-white drop-shadow-lg">All Done!</h1>
+        <p id="celebration-message" className="text-2xl text-yellow-100 font-semibold">Amazing job today! 🌟</p>
         <button
           onClick={onDismiss}
-          className="mt-4 min-h-[64px] min-w-[64px] px-10 py-4 bg-white/30 rounded-3xl text-white text-2xl font-bold active:scale-95 transition-transform"
+          aria-label="Dismiss celebration and continue"
+          className="mt-4 min-h-[64px] min-w-[64px] px-10 py-4 bg-white/30 hover:bg-white/40 rounded-3xl text-white text-2xl font-bold active:scale-95 transition-all focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
         >
           ⭐ Yay!
         </button>

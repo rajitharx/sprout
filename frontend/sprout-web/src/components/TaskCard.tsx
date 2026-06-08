@@ -23,20 +23,26 @@ export function TaskCard({ task, completed, gradientIndex, isActive }: Props) {
   const emoji = task.emoji || '📋';
 
   return (
-    <div
+    <article
       className={`h-full w-full flex flex-col items-center justify-center rounded-3xl bg-gradient-to-br ${gradient} relative overflow-visible select-none shadow-md`}
+      aria-label={completed ? `${task.label} - completed` : task.label}
+      role="img"
     >
       <div className="mb-6">
         <span
           className={`text-[112px] leading-none block drop-shadow-sm ${isActive && !completed ? 'animate-float' : 'animate-float-paused'}`}
+          aria-hidden="true"
         >
           {emoji}
         </span>
       </div>
 
-      <span className={`text-2xl font-bold text-center px-6 leading-snug ${completed ? 'text-emerald-900' : 'text-gray-700'}`}>
+      <h2 className={`text-2xl font-bold text-center px-6 leading-snug ${completed ? 'text-emerald-900' : 'text-gray-700'}`}>
         {task.label}
-      </span>
-    </div>
+      </h2>
+      {completed && (
+        <span className="sr-only">This task is completed</span>
+      )}
+    </article>
   );
 }

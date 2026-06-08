@@ -108,3 +108,76 @@ button {
     transform: none !important;
   }
 }
+
+/* Accessibility: Focus indicators for keyboard navigation */
+button:focus-visible,
+input:focus-visible,
+[role="button"]:focus-visible,
+[role="tab"]:focus-visible {
+  outline: 3px solid #fb923c;
+  outline-offset: 2px;
+}
+
+/* Enhanced focus for better visibility */
+button:focus-visible {
+  box-shadow: 0 0 0 4px rgba(251, 146, 60, 0.2);
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: more) {
+  button,
+  input,
+  [role="button"] {
+    border-width: 2px;
+  }
+}
+
+/* Ensure text is selectable for accessibility */
+button,
+[role="button"] {
+  user-select: none;
+}
+
+/* Improve link visibility */
+a {
+  color: inherit;
+  text-decoration: underline;
+}
+
+a:focus-visible {
+  outline: 3px solid #fb923c;
+  outline-offset: 2px;
+}
+
+/* Skip to main content link (hidden by default, visible on focus) */
+.skip-to-main {
+  position: absolute;
+  left: -9999px;
+  z-index: 999;
+}
+
+.skip-to-main:focus {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: auto;
+  z-index: 999;
+  padding: 12px 20px;
+  background: #fb923c;
+  color: white;
+  text-decoration: none;
+  border-radius: 0 0 8px 0;
+}
+
+/* Visually hidden but accessible to screen readers */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border-width: 0;
+}

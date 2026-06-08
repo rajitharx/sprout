@@ -81,10 +81,11 @@ export function DoneButton({ onDone, completed, disabled, onStarsReach }: Props)
         onClick={onDone}
         onPointerDown={handlePointerDown}
         disabled={disabled}
-        aria-label={completed ? 'Mark task incomplete' : 'Mark task done'}
-        className={`relative overflow-hidden min-h-[96px] w-4/5 rounded-3xl bg-gradient-to-r ${gradient} shadow-lg text-white text-4xl font-black flex items-center justify-center gap-3 active:scale-[0.97] transition-transform disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer`}
+        aria-label={completed ? 'Mark task incomplete' : 'Mark task done and move to next'}
+        title={completed ? 'Click to mark incomplete' : 'Click to mark complete'}
+        className={`relative overflow-hidden min-h-[96px] w-4/5 rounded-3xl bg-gradient-to-r ${gradient} shadow-lg text-white text-4xl font-black flex items-center justify-center gap-3 hover:shadow-xl active:scale-[0.97] transition-all disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white`}
       >
-        <span>{completed ? '✅' : '☑️'}</span>
+        <span aria-hidden="true">{completed ? '✅' : '☑️'}</span>
         <span className="text-2xl font-bold">{completed ? 'Done!' : 'I did it!'}</span>
       </button>
     </div>
