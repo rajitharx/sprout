@@ -218,228 +218,276 @@ export function ParentPanel({ tasks, profile, onBack, onCreate, onUpdate, onDele
   return (
     <div className="h-[100dvh] flex flex-col bg-slate-50">
       {/* Header */}
-      <div className="flex items-center gap-3 px-4 py-3 bg-white border-b border-gray-100 shadow-sm">
+      <header className="flex items-center gap-3 px-4 py-3 bg-white border-b border-gray-100 shadow-sm">
         <button
           onClick={onBack}
-          className="min-h-[44px] min-w-[44px] flex items-center justify-center text-gray-600 rounded-xl active:bg-gray-100 transition-colors cursor-pointer"
+          className="min-h-[44px] min-w-[44px] flex items-center justify-center text-gray-600 rounded-xl hover:bg-gray-100 active:bg-gray-200 transition-colors cursor-pointer focus-visible:outline-2 focus-visible:outline-orange-400"
           aria-label="Back to child view"
+          title="Return to child view"
         >
           <ChevronLeft />
         </button>
         <h1 className="text-xl font-bold text-gray-800">Manage Tasks</h1>
-      </div>
+      </header>
 
       {/* Error message */}
       {error && (
-        <div className="bg-red-50 border-b border-red-100 px-4 py-3 flex items-center justify-between">
+        <div className="bg-red-50 border-b border-red-100 px-4 py-3 flex items-center justify-between" role="alert" aria-live="polite">
           <p className="text-red-700 text-sm font-medium">{error}</p>
           <button
             onClick={() => setError(null)}
-            className="text-red-400 hover:text-red-600 font-bold text-lg"
+            className="text-red-400 hover:text-red-600 font-bold text-lg focus-visible:outline-2 focus-visible:outline-red-600"
+            aria-label="Dismiss error message"
           >
             ✕
           </button>
         </div>
       )}
 
-      <div className="flex-1 overflow-y-auto px-4 py-4 space-y-3">
+      <main className="flex-1 overflow-y-auto px-4 py-4 space-y-3">
         {/* Child Profile */}
-        <div className="bg-white rounded-2xl p-4 shadow-sm space-y-3">
+        <section className="bg-white rounded-2xl p-4 shadow-sm space-y-3">
           <h2 className="text-xs font-semibold text-gray-400 uppercase tracking-widest">Child Profile</h2>
           <div className="flex gap-3">
             <div className="shrink-0">
-              <label className={labelClass} htmlFor="profile-avatar">Avatar</label>
+              <label className={labelClass} htmlFor="profile-avatar">Avatar <span className="text-red-500" aria-label="required">*</span></label>
               <input
                 id="profile-avatar"
                 value={profileAvatar}
-                onChange={e => setProfileAvatar(e.target.value)}
+                onChange={e => setProfileAvatar(e.target.value.slice(-2))}
                 maxLength={2}
-                className="text-3xl text-center border border-gray-200 rounded-xl px-2 py-2 w-16 focus:outline-none focus:ring-2 focus:ring-orange-300 bg-white"
+                aria-required="true"
+                disabled={busy}
+                className="text-3xl text-center border border-gray-200 rounded-xl px-2 py-2 w-16 focus:outline-none focus:ring-2 focus:ring-orange-300 bg-white disabled:opacity-50"
+                placeholder="😊"
+                title="Paste or type an emoji for the child's avatar"
               />
             </div>
             <div className="flex-1 min-w-0">
-              <label className={labelClass} htmlFor="profile-name">Name</label>
+              <label className={labelClass} htmlFor="profile-name">Name <span className="text-red-500" aria-label="required">*</span></label>
               <input
                 id="profile-name"
                 value={profileName}
                 onChange={e => setProfileName(e.target.value)}
                 placeholder="Child's name"
+                aria-required="true"
+                disabled={busy}
                 className={inputClass}
               />
             </div>
           </div>
           <button
             onClick={saveProfile}
-            disabled={busy || !profileName.trim()}
-            className="w-full py-2.5 bg-orange-400 text-white font-semibold rounded-xl active:scale-95 transition-transform disabled:opacity-50 cursor-pointer"
+            disabled={busy || !profileName.trim() || !profileAvatar.trim()}
+            className="w-full py-2.5 bg-orange-400 text-white font-semibold rounded-xl hover:bg-orange-500 active:scale-95 transition-all disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-orange-600"
           >
-            Save Profile
+            {busy ? 'Saving...' : 'Save Profile'}
           </button>
-        </div>
+        </section>
 
         {/* Task list */}
-        {localTasks.map((task, i) => (
-          <div
-            key={task.id}
-            ref={el => { rowRefs.current[i] = el; }}
-            className={`bg-white rounded-2xl shadow-sm transition-all duration-150 ${
-              dragIndex === i ? 'opacity-40 scale-[0.98]' : ''
-            } ${
-              overIndex === i && dragIndex !== null && dragIndex !== i
-                ? 'ring-2 ring-orange-300'
-                : ''
-            }`}
-          >
-            {editingId === task.id ? (
-              <div className="p-4 space-y-3">
-                <div>
-                  <label className={labelClass} htmlFor={`edit-label-${task.id}`}>Task name</label>
-                  <div className="flex gap-2 items-center">
-                    <span className="text-3xl">{editEmoji}</span>
-                    <input
-                      id={`edit-label-${task.id}`}
-                      value={editLabel}
-                      onChange={e => setEditLabel(e.target.value)}
-                      className={inputClass}
-                      placeholder="Task name"
-                    />
+        <section aria-label="Tasks list">
+          {localTasks.map((task, i) => (
+            <div
+              key={task.id}
+              ref={el => { rowRefs.current[i] = el; }}
+              className={`bg-white rounded-2xl shadow-sm transition-all duration-150 ${
+                dragIndex === i ? 'opacity-40 scale-[0.98]' : ''
+              } ${
+                overIndex === i && dragIndex !== null && dragIndex !== i
+                  ? 'ring-2 ring-orange-300'
+                  : ''
+              }`}
+            >
+              {editingId === task.id ? (
+                <div className="p-4 space-y-3">
+                  <div>
+                    <label className={labelClass} htmlFor={`edit-label-${task.id}`}>Task name <span className="text-red-500" aria-label="required">*</span></label>
+                    <div className="flex gap-2 items-center">
+                      <span className="text-3xl" aria-hidden="true">{editEmoji}</span>
+                      <input
+                        id={`edit-label-${task.id}`}
+                        value={editLabel}
+                        onChange={e => setEditLabel(e.target.value)}
+                        className={inputClass}
+                        placeholder="Task name"
+                        aria-required="true"
+                      />
+                    </div>
                   </div>
-                </div>
-                <div>
-                  <p className={labelClass}>Choose emoji</p>
-                  <div className="flex flex-wrap gap-2">
-                    {EMOJI_OPTIONS.map(e => (
-                      <button
-                        key={e}
-                        onClick={() => setEditEmoji(e)}
-                        className={`text-2xl p-1.5 rounded-lg cursor-pointer ${editEmoji === e ? 'bg-orange-100 ring-2 ring-orange-300' : 'active:bg-gray-100'}`}
-                      >
-                        {e}
-                      </button>
-                    ))}
+                  <div>
+                    <p className={labelClass}>Choose emoji <span className="text-red-500" aria-label="required">*</span></p>
+                    <div className="space-y-2">
+                      <input
+                        type="text"
+                        value={editEmoji}
+                        onChange={e => setEditEmoji(e.target.value.slice(-2))}
+                        maxLength={2}
+                        placeholder="Paste or type emoji"
+                        disabled={busy}
+                        className="w-full text-center text-3xl border border-gray-200 rounded-xl px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-orange-300 bg-white disabled:opacity-50"
+                        aria-label="Enter custom emoji or paste emoji here"
+                        title="Paste an emoji here or select from presets below"
+                      />
+                      <div className="flex flex-wrap gap-2" role="group" aria-label="Preset emoji options">
+                        {EMOJI_OPTIONS.map(e => (
+                          <button
+                            key={e}
+                            onClick={() => setEditEmoji(e)}
+                            disabled={busy}
+                            aria-pressed={editEmoji === e}
+                            className={`text-2xl p-1.5 rounded-lg cursor-pointer focus-visible:outline-2 focus-visible:outline-orange-400 disabled:opacity-50 disabled:cursor-not-allowed ${editEmoji === e ? 'bg-orange-100 ring-2 ring-orange-300' : 'hover:bg-gray-50 active:bg-gray-100'}`}
+                            aria-label={`Select ${e} emoji`}
+                          >
+                            {e}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
                   </div>
-                </div>
-                <div className="flex gap-2">
-                  <button
-                    onClick={() => saveEdit(task)}
-                    disabled={busy || !editLabel.trim()}
-                    className="flex-1 py-2.5 bg-orange-400 text-white font-semibold rounded-xl active:scale-95 transition-transform disabled:opacity-50 cursor-pointer"
-                  >
-                    Save
-                  </button>
-                  <button
-                    onClick={() => setEditingId(null)}
-                    className="flex-1 py-2.5 bg-gray-100 text-gray-600 font-semibold rounded-xl active:scale-95 transition-transform cursor-pointer"
-                  >
-                    Cancel
-                  </button>
-                </div>
-              </div>
-            ) : (
-              <div className="flex items-center gap-2 px-4 py-3">
-                {/* Drag handle */}
-                <button
-                  aria-label="Drag to reorder"
-                  disabled={busy || editingId !== null}
-                  onPointerDown={e => onHandlePointerDown(e, i)}
-                  onPointerMove={onHandlePointerMove}
-                  onPointerUp={onHandlePointerUp}
-                  className="min-h-[44px] min-w-[36px] flex items-center justify-center text-gray-300 disabled:opacity-30 cursor-grab active:cursor-grabbing touch-none"
-                  style={{ touchAction: 'none' }}
-                >
-                  <GripIcon />
-                </button>
-
-                <span className="text-3xl shrink-0">{task.emoji || '📋'}</span>
-                <span className="flex-1 text-base font-medium text-gray-700 min-w-0 truncate">{task.label}</span>
-
-                {confirmDeleteId === task.id ? (
-                  <div className="flex items-center gap-2 shrink-0">
-                    <span className="text-sm text-red-500 font-medium">Delete?</span>
+                  <div className="flex gap-2">
                     <button
-                      onClick={() => handleDelete(task.id)}
+                      onClick={() => saveEdit(task)}
+                      disabled={busy || !editLabel.trim() || !editEmoji.trim()}
+                      className="flex-1 py-2.5 bg-orange-400 text-white font-semibold rounded-xl hover:bg-orange-500 active:scale-95 transition-all disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-orange-600"
+                    >
+                      {busy ? 'Saving...' : 'Save'}
+                    </button>
+                    <button
+                      onClick={() => setEditingId(null)}
                       disabled={busy}
-                      className="min-h-[44px] px-3 py-1 bg-red-500 text-white text-sm font-semibold rounded-xl active:scale-95 transition-transform disabled:opacity-50 cursor-pointer"
+                      className="flex-1 py-2.5 bg-gray-100 text-gray-600 font-semibold rounded-xl hover:bg-gray-200 active:scale-95 transition-all disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gray-400"
                     >
-                      Yes
-                    </button>
-                    <button
-                      onClick={() => setConfirmDeleteId(null)}
-                      className="min-h-[44px] px-3 py-1 bg-gray-100 text-gray-600 text-sm font-semibold rounded-xl active:scale-95 transition-transform cursor-pointer"
-                    >
-                      No
+                      Cancel
                     </button>
                   </div>
-                ) : (
-                  <div className="flex items-center gap-1 shrink-0">
-                    <button
-                      onClick={() => startEdit(task)}
-                      aria-label="Edit task"
-                      className="min-h-[44px] min-w-[44px] flex items-center justify-center text-gray-400 rounded-xl active:bg-gray-100 transition-colors cursor-pointer"
-                    >
-                      <PencilIcon />
-                    </button>
-                    <button
-                      onClick={() => setConfirmDeleteId(task.id)}
-                      aria-label="Delete task"
-                      className="min-h-[44px] min-w-[44px] flex items-center justify-center text-gray-400 rounded-xl active:bg-gray-100 transition-colors cursor-pointer"
-                    >
-                      <TrashIcon />
-                    </button>
-                  </div>
-                )}
-              </div>
-            )}
-          </div>
-        ))}
+                </div>
+              ) : (
+                <div className="flex items-center gap-2 px-4 py-3">
+                  {/* Drag handle */}
+                  <button
+                    aria-label={`Drag to reorder task: ${task.label}`}
+                    disabled={busy || editingId !== null}
+                    onPointerDown={e => onHandlePointerDown(e, i)}
+                    onPointerMove={onHandlePointerMove}
+                    onPointerUp={onHandlePointerUp}
+                    className="min-h-[44px] min-w-[36px] flex items-center justify-center text-gray-300 disabled:opacity-30 disabled:cursor-not-allowed cursor-grab hover:text-gray-400 active:cursor-grabbing touch-none focus-visible:outline-2 focus-visible:outline-orange-400 rounded"
+                    style={{ touchAction: 'none' }}
+                  >
+                    <GripIcon />
+                  </button>
 
-        {localTasks.length === 0 && (
-          <div className="flex flex-col items-center gap-2 py-10 text-gray-400">
-            <span className="text-5xl">🌱</span>
-            <p className="text-base font-medium">No tasks yet. Add one below!</p>
-          </div>
-        )}
-      </div>
+                  <span className="text-3xl shrink-0" aria-hidden="true">{task.emoji || '📋'}</span>
+                  <span className="flex-1 text-base font-medium text-gray-700 min-w-0 truncate">{task.label}</span>
+
+                  {confirmDeleteId === task.id ? (
+                    <div className="flex items-center gap-2 shrink-0">
+                      <span className="text-sm text-red-500 font-medium">Delete?</span>
+                      <button
+                        onClick={() => handleDelete(task.id)}
+                        disabled={busy}
+                        className="min-h-[44px] px-3 py-1 bg-red-500 text-white text-sm font-semibold rounded-xl hover:bg-red-600 active:scale-95 transition-all disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-red-600"
+                      >
+                        Yes
+                      </button>
+                      <button
+                        onClick={() => setConfirmDeleteId(null)}
+                        className="min-h-[44px] px-3 py-1 bg-gray-100 text-gray-600 text-sm font-semibold rounded-xl hover:bg-gray-200 active:scale-95 transition-all cursor-pointer focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-gray-400"
+                      >
+                        No
+                      </button>
+                    </div>
+                  ) : (
+                    <div className="flex items-center gap-1 shrink-0">
+                      <button
+                        onClick={() => startEdit(task)}
+                        aria-label={`Edit task: ${task.label}`}
+                        title="Edit task"
+                        className="min-h-[44px] min-w-[44px] flex items-center justify-center text-gray-400 rounded-xl hover:bg-gray-100 hover:text-gray-600 active:bg-gray-200 transition-colors cursor-pointer focus-visible:outline-2 focus-visible:outline-orange-400"
+                      >
+                        <PencilIcon />
+                      </button>
+                      <button
+                        onClick={() => setConfirmDeleteId(task.id)}
+                        aria-label={`Delete task: ${task.label}`}
+                        title="Delete task"
+                        className="min-h-[44px] min-w-[44px] flex items-center justify-center text-gray-400 rounded-xl hover:bg-gray-100 hover:text-gray-600 active:bg-gray-200 transition-colors cursor-pointer focus-visible:outline-2 focus-visible:outline-orange-400"
+                      >
+                        <TrashIcon />
+                      </button>
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+          ))}
+
+          {localTasks.length === 0 && (
+            <div className="flex flex-col items-center gap-2 py-10 text-gray-400">
+              <span className="text-5xl" aria-hidden="true">🌱</span>
+              <p className="text-base font-medium">No tasks yet. Add one below!</p>
+            </div>
+          )}
+        </section>
+      </main>
 
       {/* Add task footer */}
-      <div className="bg-white border-t border-gray-100 px-4 py-4 space-y-3 shadow-[0_-2px_8px_rgba(0,0,0,0.04)]">
+      <footer className="bg-white border-t border-gray-100 px-4 py-4 space-y-3 shadow-[0_-2px_8px_rgba(0,0,0,0.04)]">
         <h2 className="text-xs font-semibold text-gray-400 uppercase tracking-widest">Add Task</h2>
         <div>
-          <label className={labelClass} htmlFor="new-task-label">Task name</label>
+          <label className={labelClass} htmlFor="new-task-label">Task name <span className="text-red-500" aria-label="required">*</span></label>
           <div className="flex gap-2 items-center">
-            <span className="text-3xl shrink-0">{emoji}</span>
+            <span className="text-3xl shrink-0" aria-hidden="true">{emoji}</span>
             <input
               id="new-task-label"
               value={label}
               onChange={e => setLabel(e.target.value)}
-              onKeyDown={e => e.key === 'Enter' && handleCreate()}
+              onKeyDown={e => e.key === 'Enter' && !busy && handleCreate()}
               placeholder="e.g. Brush teeth"
               className={inputClass}
+              aria-required="true"
+              disabled={busy}
             />
           </div>
         </div>
         <div>
-          <p className={labelClass}>Choose emoji</p>
-          <div className="flex flex-wrap gap-2">
-            {EMOJI_OPTIONS.map(e => (
-              <button
-                key={e}
-                onClick={() => setEmoji(e)}
-                className={`text-2xl p-1.5 rounded-lg cursor-pointer ${emoji === e ? 'bg-orange-100 ring-2 ring-orange-300' : 'active:bg-gray-100'}`}
-              >
-                {e}
-              </button>
-            ))}
+          <p className={labelClass}>Choose emoji <span className="text-red-500" aria-label="required">*</span></p>
+          <div className="space-y-2">
+            <input
+              type="text"
+              value={emoji}
+              onChange={e => setEmoji(e.target.value.slice(-2))}
+              maxLength={2}
+              placeholder="Paste or type emoji"
+              disabled={busy}
+              className="w-full text-center text-3xl border border-gray-200 rounded-xl px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-orange-300 bg-white disabled:opacity-50"
+              aria-label="Enter custom emoji or paste emoji here"
+              title="Paste an emoji here or select from presets below"
+            />
+            <div className="flex flex-wrap gap-2" role="group" aria-label="Preset emoji options">
+              {EMOJI_OPTIONS.map(e => (
+                <button
+                  key={e}
+                  onClick={() => setEmoji(e)}
+                  disabled={busy}
+                  aria-pressed={emoji === e}
+                  className={`text-2xl p-1.5 rounded-lg cursor-pointer focus-visible:outline-2 focus-visible:outline-orange-400 disabled:opacity-50 disabled:cursor-not-allowed ${emoji === e ? 'bg-orange-100 ring-2 ring-orange-300' : 'hover:bg-gray-50 active:bg-gray-100'}`}
+                  aria-label={`Select ${e} emoji`}
+                >
+                  {e}
+                </button>
+              ))}
+            </div>
           </div>
         </div>
         <button
           onClick={handleCreate}
-          disabled={busy || !label.trim()}
-          className="w-full py-3 bg-orange-500 text-white font-bold text-lg rounded-2xl active:scale-95 transition-transform disabled:opacity-50 cursor-pointer"
+          disabled={busy || !label.trim() || !emoji.trim()}
+          className="w-full py-3 bg-orange-500 text-white font-bold text-lg rounded-2xl hover:bg-orange-600 active:scale-95 transition-all disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-orange-700"
         >
-          + Add Task
+          {busy ? 'Adding...' : '+ Add Task'}
         </button>
-      </div>
+      </footer>
     </div>
   );
 }

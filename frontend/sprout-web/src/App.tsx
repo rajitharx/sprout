@@ -105,37 +105,40 @@ export function App() {
 
   return (
     <div className="h-[100dvh] flex flex-col bg-white overflow-hidden">
-      <div className="relative">
+      <header className="relative">
         <StreakBar week={week} />
         <button
           onClick={() => {
             setIsPinAuthenticated(false);
             setView('parent');
           }}
-          aria-label="Open parent settings"
-          className="absolute top-2 right-3 opacity-25 p-2 rounded-lg active:opacity-70 cursor-pointer text-gray-600"
+          aria-label="Open parent settings and task management"
+          title="Parent Settings"
+          className="absolute top-2 right-3 opacity-25 p-2 rounded-lg hover:opacity-50 active:opacity-70 cursor-pointer text-gray-600 transition-opacity"
         >
-          <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+          <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" aria-hidden="true">
             <circle cx="12" cy="12" r="3"/>
             <path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/>
           </svg>
         </button>
-      </div>
+      </header>
 
-      {loading ? (
-        <div className="flex-1 flex items-center justify-center">
-          <div className="w-48 h-48 rounded-3xl bg-gray-100 animate-pulse" />
-        </div>
-      ) : (
-        <TaskCarousel
-          profile={profile}
-          tasks={tasks}
-          completedIds={completedIds}
-          currentIndex={currentIndex}
-          onIndexChange={setCurrentIndex}
-          avatarFlash={avatarFlash}
-        />
-      )}
+      <main className="flex-1 overflow-hidden">
+        {loading ? (
+          <div className="flex h-full items-center justify-center" role="status" aria-label="Loading tasks">
+            <div className="w-48 h-48 rounded-3xl bg-gray-100 animate-pulse" />
+          </div>
+        ) : (
+          <TaskCarousel
+            profile={profile}
+            tasks={tasks}
+            completedIds={completedIds}
+            currentIndex={currentIndex}
+            onIndexChange={setCurrentIndex}
+            avatarFlash={avatarFlash}
+          />
+        )}
+      </main>
 
       <DoneButton
         onDone={handleDone}
@@ -150,26 +153,47 @@ export function App() {
 
       {welcomeState !== 'hidden' && (
         <div
+          role="dialog"
+          aria-modal="true"
+          aria-label="Welcome message"
           className={`fixed inset-0 flex flex-col items-center justify-center bg-yellow-50 z-50 ${welcomeState === 'hiding' ? 'animate-welcome-out' : 'animate-welcome-in'}`}
           onClick={() => {
             setWelcomeState('hiding');
             setTimeout(() => setWelcomeState('hidden'), 400);
           }}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter' || e.key === ' ') {
+              e.preventDefault();
+              setWelcomeState('hiding');
+              setTimeout(() => setWelcomeState('hidden'), 400);
+            }
+          }}
+          tabIndex={0}
         >
-          <div className="text-8xl mb-6 animate-float">{profile.avatar}</div>
-          <p className="text-4xl font-bold text-yellow-600 tracking-tight">Welcome,</p>
+          <div className="text-8xl mb-6 animate-float" aria-hidden="true">{profile.avatar}</div>
+          <h1 className="text-4xl font-bold text-yellow-600 tracking-tight">Welcome,</h1>
           <p className="text-5xl font-black text-yellow-500 mt-1">{profile.name}! 🌱</p>
+          <p className="sr-only">Click or press Enter to continue</p>
         </div>
       )}
 
       {toast && (
-        <div className="fixed bottom-4 left-1/2 -translate-x-1/2 bg-gray-800 text-white px-5 py-3 rounded-2xl text-sm font-medium shadow-lg z-40">
+        <div
+          role="status"
+          aria-live="polite"
+          aria-atomic="true"
+          className="fixed bottom-4 left-1/2 -translate-x-1/2 bg-gray-800 text-white px-5 py-3 rounded-2xl text-sm font-medium shadow-lg z-40"
+        >
           {toast}
         </div>
       )}
 
       {isOffline && (
-        <div className="fixed top-0 left-0 right-0 bg-orange-100 text-orange-800 px-4 py-2 text-center text-sm font-medium z-50">
+        <div
+          role="alert"
+          aria-live="polite"
+          className="fixed top-0 left-0 right-0 bg-orange-100 text-orange-800 px-4 py-2 text-center text-sm font-medium z-50"
+        >
           📡 Offline mode — changes will sync when online
         </div>
       )}
