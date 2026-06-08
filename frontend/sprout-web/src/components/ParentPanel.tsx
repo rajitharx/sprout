@@ -62,6 +62,7 @@ export function ParentPanel({ tasks, profile, onBack, onCreate, onUpdate, onDele
   const [profileAvatar, setProfileAvatar] = useState(profile.avatar);
   const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   // Local ordered copy for drag reorder
   const [localTasks, setLocalTasks] = useState<HabitTask[]>([]);
@@ -80,10 +81,18 @@ export function ParentPanel({ tasks, profile, onBack, onCreate, onUpdate, onDele
 
   const handleCreate = async () => {
     if (!label.trim()) return;
+    if (!emoji.trim()) {
+      setError('Emoji is required');
+      return;
+    }
     setBusy(true);
+    setError(null);
     try {
       await onCreate({ label: label.trim(), emoji, sortOrder: localTasks.length, isActive: true });
       setLabel('');
+      setEmoji('🪥');
+    } catch (e) {
+      setError(e instanceof Error ? e.message : 'Failed to create task');
     } finally {
       setBusy(false);
     }
@@ -98,10 +107,17 @@ export function ParentPanel({ tasks, profile, onBack, onCreate, onUpdate, onDele
 
   const saveEdit = async (task: HabitTask) => {
     if (!editLabel.trim()) return;
+    if (!editEmoji.trim()) {
+      setError('Emoji is required');
+      return;
+    }
     setBusy(true);
+    setError(null);
     try {
       await onUpdate(task.id, { ...task, label: editLabel.trim(), emoji: editEmoji });
       setEditingId(null);
+    } catch (e) {
+      setError(e instanceof Error ? e.message : 'Failed to update task');
     } finally {
       setBusy(false);
     }
@@ -109,19 +125,32 @@ export function ParentPanel({ tasks, profile, onBack, onCreate, onUpdate, onDele
 
   const handleDelete = async (id: string) => {
     setBusy(true);
+    setError(null);
     try {
       await onDelete(id);
       setConfirmDeleteId(null);
+    } catch (e) {
+      setError(e instanceof Error ? e.message : 'Failed to delete task');
     } finally {
       setBusy(false);
     }
   };
 
   const saveProfile = async () => {
-    if (!profileName.trim()) return;
+    if (!profileName.trim()) {
+      setError('Child name is required');
+      return;
+    }
+    if (!profileAvatar.trim()) {
+      setError('Avatar emoji is required');
+      return;
+    }
     setBusy(true);
+    setError(null);
     try {
       await onUpdateProfile({ name: profileName.trim(), avatar: profileAvatar });
+    } catch (e) {
+      setError(e instanceof Error ? e.message : 'Failed to save profile');
     } finally {
       setBusy(false);
     }
@@ -199,6 +228,19 @@ export function ParentPanel({ tasks, profile, onBack, onCreate, onUpdate, onDele
         </button>
         <h1 className="text-xl font-bold text-gray-800">Manage Tasks</h1>
       </div>
+
+      {/* Error message */}
+      {error && (
+        <div className="bg-red-50 border-b border-red-100 px-4 py-3 flex items-center justify-between">
+          <p className="text-red-700 text-sm font-medium">{error}</p>
+          <button
+            onClick={() => setError(null)}
+            className="text-red-400 hover:text-red-600 font-bold text-lg"
+          >
+            ✕
+          </button>
+        </div>
+      )}
 
       <div className="flex-1 overflow-y-auto px-4 py-4 space-y-3">
         {/* Child Profile */}

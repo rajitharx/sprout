@@ -1,5 +1,7 @@
 using Sprout.Api.Endpoints;
 using Sprout.Api.Services;
+using System.Text.Json;
+using System.Text.Json.Serialization;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -8,6 +10,10 @@ builder.Services.AddSingleton<ITaskService, JsonTaskService>();
 builder.Services.AddSingleton<IProgressService, JsonProgressService>();
 builder.Services.AddSingleton<IChildProfileService, JsonChildProfileService>();
 builder.Services.AddSingleton<IAuthenticationService, ConfigurationAuthenticationService>();
+builder.Services.ConfigureHttpJsonOptions(opt =>
+{
+    opt.SerializerOptions.DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull;
+});
 builder.Services.AddCors();
 
 var app = builder.Build();
