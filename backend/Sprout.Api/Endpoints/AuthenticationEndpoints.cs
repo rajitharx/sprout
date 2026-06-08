@@ -1,3 +1,4 @@
+using Sprout.Api.Models;
 using Sprout.Api.Services;
 
 namespace Sprout.Api.Endpoints;
@@ -11,8 +12,25 @@ public static class AuthenticationEndpoints
     {
         app.MapPost("/api/auth/validate-pin", async (PinValidationRequest request, IAuthenticationService svc) =>
         {
-            var valid = await svc.ValidatePinAsync(request.Pin);
-            return Results.Ok(new PinValidationResponse(valid));
+            if (string.IsNullOrWhiteSpace(request.Pin))
+            {
+                return Results.BadRequest(ApiErrors.ValidationError("pin", "PIN is required."));
+            }
+
+            if (request.Pin.Length > 20)
+            {
+                return Results.BadRequest(ApiErrors.ValidationError("pin", "PIN is too long."));
+            }
+
+            try
+            {
+                var valid = await svc.ValidatePinAsync(request.Pin);
+                return Results.Ok(new PinValidationResponse(valid));
+            }
+            catch
+            {
+                return Results.StatusCode(StatusCodes.Status500InternalServerError);
+            }
         });
     }
 }

@@ -85,15 +85,21 @@ public class JsonTaskService : ITaskService
 
     public async Task<HabitTask> CreateAsync(HabitTask task)
     {
+        if (string.IsNullOrWhiteSpace(task.Label))
+            throw new ArgumentException("Task label cannot be null or empty.", nameof(task));
+        if (string.IsNullOrWhiteSpace(task.Emoji))
+            throw new ArgumentException("Task emoji cannot be null or empty.", nameof(task));
+
         await _lock.WaitAsync();
         try
         {
             var data = await ReadFileAsync();
-            data.Add(task);
+            var taskToAdd = task with { Id = string.IsNullOrEmpty(task.Id) ? Guid.NewGuid().ToString() : task.Id };
+            data.Add(taskToAdd);
             await WriteFileAsync(data);
-            _logger.LogInformation("✏️ Task created: {Label} ({Emoji})", task.Label, task.Emoji);
-            if (_logServiceCalls) _logger.LogDebug("  Task ID: {Id}, SortOrder: {SortOrder}", task.Id, task.SortOrder);
-            return task;
+            _logger.LogInformation("✏️ Task created: {Label} ({Emoji})", taskToAdd.Label, taskToAdd.Emoji);
+            if (_logServiceCalls) _logger.LogDebug("  Task ID: {Id}, SortOrder: {SortOrder}", taskToAdd.Id, taskToAdd.SortOrder);
+            return taskToAdd;
         }
         finally
         {
@@ -103,6 +109,13 @@ public class JsonTaskService : ITaskService
 
     public async Task<HabitTask?> UpdateAsync(string id, HabitTask task)
     {
+        if (string.IsNullOrWhiteSpace(id))
+            throw new ArgumentException("Task ID cannot be null or empty.", nameof(id));
+        if (string.IsNullOrWhiteSpace(task.Label))
+            throw new ArgumentException("Task label cannot be null or empty.", nameof(task));
+        if (string.IsNullOrWhiteSpace(task.Emoji))
+            throw new ArgumentException("Task emoji cannot be null or empty.", nameof(task));
+
         await _lock.WaitAsync();
         try
         {

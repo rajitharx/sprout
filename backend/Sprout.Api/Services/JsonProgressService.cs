@@ -53,6 +53,9 @@ public class JsonProgressService : IProgressService
 
     public async Task<DailyProgress> MarkCompleteAsync(string taskId)
     {
+        if (string.IsNullOrWhiteSpace(taskId))
+            throw new ArgumentException("Task ID cannot be null or empty.", nameof(taskId));
+
         await _lock.WaitAsync();
         try
         {
@@ -86,7 +89,11 @@ public class JsonProgressService : IProgressService
                 CompletedTaskIds = [.. existing.CompletedTaskIds, taskId],
                 LastUpdated = DateTime.UtcNow
             };
-            data[data.IndexOf(existing)] = updated;
+            var index = data.FindIndex(p => p.Date == today);
+            if (index >= 0)
+            {
+                data[index] = updated;
+            }
             await WriteFileAsync(data);
             _logger.LogInformation("✅ Task completed on {Date} ({Total} total)", today, updated.CompletedTaskIds.Count);
             if (_logServiceCalls) _logger.LogDebug("  Task ID: {TaskId}", taskId);
@@ -100,6 +107,9 @@ public class JsonProgressService : IProgressService
 
     public async Task<DailyProgress> MarkIncompleteAsync(string taskId)
     {
+        if (string.IsNullOrWhiteSpace(taskId))
+            throw new ArgumentException("Task ID cannot be null or empty.", nameof(taskId));
+
         await _lock.WaitAsync();
         try
         {
@@ -118,7 +128,11 @@ public class JsonProgressService : IProgressService
                 CompletedTaskIds = [.. existing.CompletedTaskIds.Where(id => id != taskId)],
                 LastUpdated = DateTime.UtcNow
             };
-            data[data.IndexOf(existing)] = updated;
+            var index = data.FindIndex(p => p.Date == today);
+            if (index >= 0)
+            {
+                data[index] = updated;
+            }
             await WriteFileAsync(data);
             _logger.LogInformation("❌ Task marked incomplete on {Date} ({Remaining} remaining)", today, updated.CompletedTaskIds.Count);
             if (_logServiceCalls) _logger.LogDebug("  Task ID: {TaskId}", taskId);

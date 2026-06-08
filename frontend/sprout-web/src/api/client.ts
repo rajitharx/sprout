@@ -1,61 +1,94 @@
 import type { HabitTask, DailyProgress, ChildProfile } from '../types';
 
+const API_TIMEOUT = 30_000; // 30 seconds
+
+export class ApiError extends Error {
+  constructor(
+    message: string,
+    public status: number,
+    public code?: string,
+  ) {
+    super(message);
+    this.name = 'ApiError';
+  }
+}
+
+async function fetchWithTimeout(input: RequestInfo, init?: RequestInit): Promise<Response> {
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), API_TIMEOUT);
+
+  try {
+    return await fetch(input, { ...init, signal: controller.signal });
+  } catch (e) {
+    if (e instanceof Error && e.name === 'AbortError') {
+      throw new ApiError('Request timeout — check your connection', 0, 'TIMEOUT');
+    }
+    throw e;
+  } finally {
+    clearTimeout(timeoutId);
+  }
+}
+
 async function json<T>(res: Response): Promise<T> {
-  if (!res.ok) throw new Error(`${res.status} ${res.statusText}`);
+  if (!res.ok) {
+    const errorData = await res.json().catch(() => ({}));
+    const message = errorData?.error?.message || `${res.status} ${res.statusText}`;
+    throw new ApiError(message, res.status, errorData?.error?.code);
+  }
   return res.json() as Promise<T>;
 }
 
 export const api = {
   getTasks: () =>
-    fetch('/api/tasks').then(r => json<HabitTask[]>(r)),
+    fetchWithTimeout('/api/tasks').then(r => json<HabitTask[]>(r)),
 
   createTask: (task: Omit<HabitTask, 'id'>) =>
-    fetch('/api/tasks', {
+    fetchWithTimeout('/api/tasks', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(task),
     }).then(r => json<HabitTask>(r)),
 
   updateTask: (id: string, task: HabitTask) =>
-    fetch(`/api/tasks/${id}`, {
+    fetchWithTimeout(`/api/tasks/${id}`, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(task),
     }).then(r => json<HabitTask>(r)),
 
   deleteTask: (id: string) =>
-    fetch(`/api/tasks/${id}`, { method: 'DELETE' }).then(r => {
-      if (!r.ok) throw new Error(`${r.status} ${r.statusText}`);
+    fetchWithTimeout(`/api/tasks/${id}`, { method: 'DELETE' }).then(r => {
+      if (!r.ok) throw new ApiError(`${r.status} ${r.statusText}`, r.status);
     }),
 
   getToday: () =>
-    fetch('/api/progress/today').then(r => json<DailyProgress>(r)),
+    fetchWithTimeout('/api/progress/today').then(r => json<DailyProgress>(r)),
 
   markComplete: (taskId: string) =>
-    fetch(`/api/progress/complete/${taskId}`, { method: 'POST' }).then(r =>
+    fetchWithTimeout(`/api/progress/complete/${taskId}`, { method: 'POST' }).then(r =>
       json<DailyProgress>(r),
     ),
 
   markIncomplete: (taskId: string) =>
-    fetch(`/api/progress/incomplete/${taskId}`, { method: 'POST' }).then(r =>
+    fetchWithTimeout(`/api/progress/incomplete/${taskId}`, { method: 'POST' }).then(r =>
       json<DailyProgress>(r),
     ),
 
   getWeek: () =>
-    fetch('/api/progress/week').then(r => json<DailyProgress[]>(r)),
+    fetchWithTimeout('/api/progress/week').then(r => json<DailyProgress[]>(r)),
 
   getProfile: () =>
-    fetch('/api/profile').then(r => json<ChildProfile>(r)),
+    fetchWithTimeout('/api/profile').then(r => json<ChildProfile>(r)),
 
   updateProfile: (profile: ChildProfile) =>
-    fetch('/api/profile', {
+    fetchWithTimeout('/api/profile', {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(profile),
     }).then(r => json<ChildProfile>(r)),
 
   validatePin: (pin: string) =>
-    fetch('/api/auth/validate-pin', {
+    fetchWithTimeout('/api/auth/validate-pin', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ pin }),

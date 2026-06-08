@@ -285,6 +285,51 @@ dotnet test
 
 Tests use `WebApplicationFactory` to run the full API in-process against real JSON files written to a temp directory — no mocks for the storage layer.
 
+**Test coverage** — 71 tests including:
+- Task CRUD operations and edge cases
+- Progress tracking and concurrent mark-complete
+- Profile management and validation
+- PIN authentication
+- Error handling (validation, not found, timeouts)
+- Offline fallback behavior
+
+Run with verbose output:
+
+```bash
+dotnet test --verbosity=normal
+```
+
+---
+
+## Error Handling & Edge Cases
+
+The app is built to handle real-world issues gracefully:
+
+### **Backend Resilience**
+- **Input validation** — All endpoints validate request bodies (label/emoji length, required fields, valid sort order)
+- **Detailed error responses** — 400 Bad Request returns validation errors with field names; 404 for missing resources; 500 for server errors
+- **Concurrent safety** — `SemaphoreSlim` locking prevents data corruption on rapid writes
+- **Graceful degradation** — Unhandled exceptions return 500 with sanitized messages (no stack traces exposed)
+
+### **Frontend Resilience**
+- **Network timeouts** — 30-second timeout with clear user message: "Request timeout — check your connection"
+- **Duplicate prevention** — Marking same task concurrent is blocked; buttons disable during API calls
+- **Offline support** — Child view never breaks; falls back to `localStorage` cache if API unreachable
+- **Offline indicator** — Banner shows "📡 Offline mode — changes will sync when online"
+- **Error recovery** — Form errors dismissed by user; state rolls back on API failure
+- **Optimistic updates** — UI updates immediately; state rolls back if save fails
+
+### **Edge Cases Covered**
+✅ Empty task list → "No tasks yet" prompt  
+✅ API unreachable → Uses localStorage cache  
+✅ Network lag → Buttons disabled during request  
+✅ Concurrent mark-complete → Prevented with ref-based tracking  
+✅ Delete during marking → Safe (ID-based operations)  
+✅ All tasks complete → Celebration triggers correctly  
+✅ Invalid input (empty name/emoji) → Caught at client and server  
+✅ Stale profile/task data → Synced on app load  
+✅ Large task lists → Handled efficiently  
+
 ---
 
 ## Architecture Notes

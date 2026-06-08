@@ -34,9 +34,10 @@ export function App() {
     setTimeout(() => setAvatarFlash(false), 600);
   }, []);
 
-  const { tasks, loading, createTask, updateTask, deleteTask } = useTasks();
+  const { tasks, loading, isOffline, createTask, updateTask, deleteTask } = useTasks();
   const { profile, loading: profileLoading, updateProfile } = useProfile();
-  const { today, week, markComplete, markIncomplete } = useProgress(handleAllComplete);
+  const { today, week, markComplete, markIncomplete, markingIds } = useProgress(handleAllComplete);
+  const isMarking = markingIds.size > 0;
 
   useEffect(() => {
     if (profileLoading) return;
@@ -59,7 +60,7 @@ export function App() {
   }, [tasks.length, currentIndex]);
 
   const handleDone = async () => {
-    if (!currentTask) return;
+    if (!currentTask || isMarking) return;
     try {
       if (currentTaskCompleted) {
         await markIncomplete(currentTask.id);
@@ -139,7 +140,7 @@ export function App() {
       <DoneButton
         onDone={handleDone}
         completed={currentTaskCompleted}
-        disabled={loading || !currentTask}
+        disabled={loading || !currentTask || isMarking}
         onStarsReach={handleStarsReach}
       />
 
@@ -164,6 +165,12 @@ export function App() {
       {toast && (
         <div className="fixed bottom-4 left-1/2 -translate-x-1/2 bg-gray-800 text-white px-5 py-3 rounded-2xl text-sm font-medium shadow-lg z-40">
           {toast}
+        </div>
+      )}
+
+      {isOffline && (
+        <div className="fixed top-0 left-0 right-0 bg-orange-100 text-orange-800 px-4 py-2 text-center text-sm font-medium z-50">
+          📡 Offline mode — changes will sync when online
         </div>
       )}
     </div>
