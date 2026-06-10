@@ -12,8 +12,9 @@ A gamified daily habit tracker for toddlers (ages 3–4). The child taps through
 - Swipeable task carousel — one big card per habit, no reading required
 - Emoji-first design with giant tap targets, colour-coded gradient cards
 - Star collection animation — pressing "I did it!" sends star particles flying up to the profile avatar, which bounces on arrival
+- Per-task celebration with task emoji — celebrates each completion with task-specific messaging
+- All-done celebration overlay when all tasks are complete with trophy animation
 - Completed tasks turn green to match the done button; progress bar and counter update in real time
-- Celebration overlay when all tasks are complete
 - Streak bar showing the current week (Monday–Sunday)
 - Offline-capable — falls back to `localStorage` cache if the API is unreachable
 - Respects `prefers-reduced-motion` — all animations disabled when the system setting is on
@@ -104,6 +105,23 @@ dotnet run
 
 The API serves the built frontend as static files and falls back to `index.html` for all non-API routes.
 
+### PWA Installation & Icons
+
+Sprout is a Progressive Web App (PWA) installable on iOS and Android home screens.
+
+**To enable PWA installation:**
+
+1. Generate app icons (192x192 and 512x512 PNG):
+   - Place in `frontend/sprout-web/public/icon-192.png` and `icon-512.png`
+   - Optionally create maskable versions: `icon-maskable-192.png` and `icon-maskable-512.png`
+   - Example: Use a warm gradient (coral to orange) with a 🌱 seedling emoji
+
+2. Icons are referenced in `manifest.json` (already configured)
+
+3. Serve the app over HTTPS in production (required for PWA installation)
+
+4. Users can now "Add to Home Screen" on mobile or desktop browsers
+
 ### Docker deployment
 
 A single Docker container bundles both frontend and backend for production deployment.
@@ -131,6 +149,29 @@ docker compose up -d
 ```
 
 The app runs on `http://server:5000` with persistent storage in the `sprout-storage` Docker volume.
+
+**Production deployment checklist:**
+
+- Use a reverse proxy (nginx, Caddy) to serve HTTPS (required for PWA)
+- Set `ASPNETCORE_URLS=http://127.0.0.1:5000` to bind to localhost only
+- Mount a persistent volume for `Storage__DataPath=/var/sprout-data`
+- Configure parent PIN via `ParentAuth__DefaultPin` environment variable
+- Enable health checks to monitor the container
+
+**Example Docker run with HTTPS (behind Caddy):**
+
+```bash
+docker run -d \
+  --name sprout \
+  -p 5000:5000 \
+  -e ASPNETCORE_URLS=http://127.0.0.1:5000 \
+  -e Storage__DataPath=/var/sprout-data \
+  -e ParentAuth__DefaultPin=1234 \
+  -v sprout-data:/var/sprout-data \
+  sprout:latest
+```
+
+Then proxy `https://yourdomain.com` → `http://localhost:5000` via Caddy or nginx.
 
 **Deployment files:**
 
@@ -285,9 +326,10 @@ dotnet test
 
 Tests use `WebApplicationFactory` to run the full API in-process against real JSON files written to a temp directory — no mocks for the storage layer.
 
-**Test coverage** — 71 tests including:
+**Test coverage** — 73 tests including:
 - Task CRUD operations and edge cases
 - Progress tracking and concurrent mark-complete
+- Week calculation edge cases (Sunday→Monday boundary)
 - Profile management and validation
 - PIN authentication
 - Error handling (validation, not found, timeouts)
@@ -346,6 +388,6 @@ The app is built to handle real-world issues gracefully:
 
 **Animations are pure CSS** — all keyframes live in `index.css` (`float`, `bounce`, `confettiFall`, `pulseGlow`, `ripple`, `starFly`, `avatarPop`). DOM-spawned particles (stars, confetti) are created imperatively and removed after their animation completes. No Framer Motion, GSAP, or confetti packages.
 
-**All-complete detection** — `useProgress.markComplete` receives the full list of active task IDs and only counts completions against that set. This prevents stale IDs from deleted tasks inflating the count and falsely triggering the celebration overlay.
+**Per-task & all-complete celebrations** — `useProgress.markComplete` receives the full list of active task IDs and triggers a celebration callback with the task emoji and a flag indicating if all tasks are done. The celebration shows the task emoji for individual completions, then the trophy emoji for the final "All Done!" overlay.
 
 **Offline fallback** — `useTasks`, `useProgress`, and `useProfile` write to `localStorage` on every successful fetch. If the API is unreachable on load, the cached data is used so the child view always renders.

@@ -35,9 +35,11 @@ function spawnConfetti(container: HTMLElement, count = 100) {
 
 interface Props {
   onDismiss: () => void;
+  taskEmoji?: string;
+  isAllDone?: boolean;
 }
 
-export function CelebrationOverlay({ onDismiss }: Props) {
+export function CelebrationOverlay({ onDismiss, taskEmoji, isAllDone = false }: Props) {
   const containerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -45,6 +47,10 @@ export function CelebrationOverlay({ onDismiss }: Props) {
     const timer = setTimeout(onDismiss, 6000);
     return () => clearTimeout(timer);
   }, [onDismiss]);
+
+  const title = isAllDone ? 'All Done!' : `You did it! ${taskEmoji}`;
+  const message = isAllDone ? 'Amazing job today! 🌟' : 'Great work! Keep it up! ✨';
+  const trophy = isAllDone ? '🏆' : taskEmoji || '⭐';
 
   return createPortal(
     <div
@@ -56,9 +62,9 @@ export function CelebrationOverlay({ onDismiss }: Props) {
       aria-describedby="celebration-message"
     >
       <div className="animate-celebration-pop flex flex-col items-center gap-6">
-        <span className="text-[120px] leading-none animate-bounce-trophy" aria-hidden="true">🏆</span>
-        <h1 id="celebration-title" className="text-5xl font-black text-white drop-shadow-lg">All Done!</h1>
-        <p id="celebration-message" className="text-2xl text-yellow-100 font-semibold">Amazing job today! 🌟</p>
+        <span className="text-[120px] leading-none animate-bounce-trophy" aria-hidden="true">{trophy}</span>
+        <h1 id="celebration-title" className="text-5xl font-black text-white drop-shadow-lg">{title}</h1>
+        <p id="celebration-message" className="text-2xl text-yellow-100 font-semibold">{message}</p>
         <button
           onClick={onDismiss}
           aria-label="Dismiss celebration and continue"

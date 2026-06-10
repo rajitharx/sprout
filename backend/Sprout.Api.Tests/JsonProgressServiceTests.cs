@@ -188,4 +188,46 @@ public class JsonProgressServiceTests : IDisposable
 
         Assert.All(pastDays, p => Assert.Empty(p.CompletedTaskIds));
     }
+
+    [Fact]
+    public async Task GetWeekAsync_OnSunday_CorrectlyRetursMondayToSunday()
+    {
+        var sundayClock = new TestSystemClock(new DateOnly(2026, 5, 31));
+        var svc = new JsonProgressService(
+            new ConfigurationBuilder()
+                .AddInMemoryCollection(new Dictionary<string, string?> { ["Storage:DataPath"] = _tempDir })
+                .Build(),
+            sundayClock,
+            _logger
+        );
+
+        var week = await svc.GetWeekAsync();
+
+        Assert.Equal(7, week.Count);
+        var firstDate = DateOnly.Parse(week.First().Date);
+        var lastDate = DateOnly.Parse(week.Last().Date);
+        Assert.Equal(DayOfWeek.Monday, firstDate.DayOfWeek);
+        Assert.Equal(DayOfWeek.Sunday, lastDate.DayOfWeek);
+        Assert.Equal(6, (lastDate.DayNumber - firstDate.DayNumber));
+    }
+
+    [Fact]
+    public async Task GetWeekAsync_AcrossDayBoundary_MaintainsWeekIntegrity()
+    {
+        var saturdayClock = new TestSystemClock(new DateOnly(2026, 5, 30));
+        var svc = new JsonProgressService(
+            new ConfigurationBuilder()
+                .AddInMemoryCollection(new Dictionary<string, string?> { ["Storage:DataPath"] = _tempDir })
+                .Build(),
+            saturdayClock,
+            _logger
+        );
+
+        await svc.MarkCompleteAsync("task-sat");
+        var week = await svc.GetWeekAsync();
+
+        var saturdayEntry = week.FirstOrDefault(p => DateOnly.Parse(p.Date).DayOfWeek == DayOfWeek.Saturday);
+        Assert.NotNull(saturdayEntry);
+        Assert.Contains("task-sat", saturdayEntry!.CompletedTaskIds);
+    }
 }

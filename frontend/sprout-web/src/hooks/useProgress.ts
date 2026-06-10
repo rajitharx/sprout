@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import { api, ApiError } from '../api/client';
 import type { DailyProgress } from '../types';
 
-export function useProgress(onAllComplete?: () => void) {
+export function useProgress(onTaskComplete?: (taskEmoji?: string, isAllDone?: boolean) => void) {
   const [today, setToday] = useState<DailyProgress | null>(null);
   const [week, setWeek] = useState<DailyProgress[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -28,7 +28,7 @@ export function useProgress(onAllComplete?: () => void) {
   }, [fetchAll]);
 
   const markComplete = useCallback(
-    async (taskId: string, taskIds: string[]) => {
+    async (taskId: string, taskIds: string[], taskEmoji?: string) => {
       if (markingRef.current.has(taskId)) {
         throw new Error('Already marking this task');
       }
@@ -42,8 +42,9 @@ export function useProgress(onAllComplete?: () => void) {
           if (prev.completedTaskIds.includes(taskId)) return prev;
           const next = { ...prev, completedTaskIds: [...prev.completedTaskIds, taskId] };
           const activeCompleted = next.completedTaskIds.filter(id => taskIds.includes(id));
-          if (activeCompleted.length === taskIds.length && onAllComplete) {
-            onAllComplete();
+          const isAllDone = activeCompleted.length === taskIds.length;
+          if (onTaskComplete) {
+            onTaskComplete(taskEmoji, isAllDone);
           }
           prevCompletedCount.current = activeCompleted.length;
           return next;
@@ -64,7 +65,7 @@ export function useProgress(onAllComplete?: () => void) {
         markingRef.current.delete(taskId);
       }
     },
-    [today, onAllComplete],
+    [today, onTaskComplete],
   );
 
   const markIncomplete = useCallback(async (taskId: string) => {

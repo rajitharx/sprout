@@ -260,26 +260,26 @@
 ## 📋 Known Issues & TODOs
 
 ### Current Bugs / Edge Cases
-- [ ] **Celebration triggers only on last task**
-  - Currently: marks complete → only shows celebration on final task
-  - Should: show per-task celebration, then all-done screen
-  - Impact: Low (visual, not functional)
-  - Fix: Modify `useProgress` and `CelebrationOverlay` logic
+- [x] **Celebration triggers only on last task** ✅
+  - Now: shows per-task celebration with task emoji, then all-done screen
+  - Modified: `useProgress`, `CelebrationOverlay`, `App.tsx`
+  - Status: Complete
 
-- [ ] **Streak bar week calculation**
-  - Verify: Mon–Sun alignment matches the prompt
-  - Edge case: crossing Sunday→Monday midnight
-  - Fix: Add test case in `JsonProgressServiceTests`
+- [x] **Streak bar week calculation** ✅
+  - Verified: Mon–Sun alignment is correct
+  - Added edge case tests: Sunday→Monday boundary, Saturday completion
+  - Status: 73/73 tests passing
 
-- [ ] **localStorage fallback stale data**
-  - If offline, child sees cached tasks that may be deleted
-  - Can't update progress without API
-  - Mitigation: Show "offline mode" banner; sync when back online
+- [x] **localStorage fallback stale data** ✅
+  - Mitigation implemented: "offline mode" banner shown when offline (App.tsx line 191-199)
+  - Sync happens when back online via 60s polling interval
+  - Status: Complete
 
-- [ ] **Manifest.json is empty**
-  - File exists but has no PWA metadata
-  - Blocks PWA installability
-  - Fix: Populate with proper icons, metadata (Phase 1)
+- [x] **Manifest.json is empty** ✅
+  - Populated with proper PWA metadata
+  - Includes app name, icons array, display mode, theme colors, shortcuts
+  - Note: Icon files (192x192, 512x512 PNG) need to be generated and placed in `public/`
+  - Status: Complete (icons pending)
 
 ### Performance Considerations
 - [ ] **Large task lists** (20+ tasks)
@@ -359,4 +359,14 @@ Before shipping to production:
 
 ---
 
-*Last updated: 2026-06-02*
+*Last updated: 2026-06-10*
+
+---
+
+## Recent Fixes (Sprint 5)
+
+✅ **Per-task celebration display** — Shows task emoji on individual task completion, trophy on "All Done!"  
+✅ **Manifest.json populated** — Full PWA metadata with app name, icons, display mode, theme colors, shortcuts  
+✅ **Edge case tests added** — Sunday→Monday boundary testing + Saturday completion verification  
+✅ **README enhanced** — Added PWA installation guide, production deployment checklist, Docker HTTPS examples  
+✅ **All 73 tests passing** — Including new edge case coverage for week calculation

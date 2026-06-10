@@ -15,6 +15,8 @@ export function App() {
   const [view, setView] = useState<View>('child');
   const [currentIndex, setCurrentIndex] = useState(0);
   const [showCelebration, setShowCelebration] = useState(false);
+  const [celebrationEmoji, setCelebrationEmoji] = useState<string | undefined>();
+  const [isAllDone, setIsAllDone] = useState(false);
   const [toast, setToast] = useState<string | null>(null);
   const [welcomeState, setWelcomeState] = useState<'visible' | 'hiding' | 'hidden'>('visible');
   const [avatarFlash, setAvatarFlash] = useState(false);
@@ -25,7 +27,9 @@ export function App() {
     setTimeout(() => setToast(null), 3000);
   }, []);
 
-  const handleAllComplete = useCallback(() => {
+  const handleTaskComplete = useCallback((taskEmoji?: string, allDone?: boolean) => {
+    setCelebrationEmoji(taskEmoji);
+    setIsAllDone(allDone ?? false);
     setShowCelebration(true);
   }, []);
 
@@ -36,7 +40,7 @@ export function App() {
 
   const { tasks, loading, isOffline, createTask, updateTask, deleteTask } = useTasks();
   const { profile, loading: profileLoading, updateProfile } = useProfile();
-  const { today, week, markComplete, markIncomplete, markingIds } = useProgress(handleAllComplete);
+  const { today, week, markComplete, markIncomplete, markingIds } = useProgress(handleTaskComplete);
   const isMarking = markingIds.size > 0;
 
   useEffect(() => {
@@ -65,7 +69,7 @@ export function App() {
       if (currentTaskCompleted) {
         await markIncomplete(currentTask.id);
       } else {
-        await markComplete(currentTask.id, tasks.map(t => t.id));
+        await markComplete(currentTask.id, tasks.map(t => t.id), currentTask.emoji);
         if (currentIndex < tasks.length - 1) {
           setTimeout(() => setCurrentIndex(i => i + 1), 400);
         }
@@ -148,7 +152,11 @@ export function App() {
       />
 
       {showCelebration && (
-        <CelebrationOverlay onDismiss={() => setShowCelebration(false)} />
+        <CelebrationOverlay
+          onDismiss={() => setShowCelebration(false)}
+          taskEmoji={celebrationEmoji}
+          isAllDone={isAllDone}
+        />
       )}
 
       {welcomeState !== 'hidden' && (
