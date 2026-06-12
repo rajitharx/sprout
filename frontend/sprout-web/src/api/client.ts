@@ -32,8 +32,10 @@ async function fetchWithTimeout(input: RequestInfo, init?: RequestInit): Promise
 async function json<T>(res: Response): Promise<T> {
   if (!res.ok) {
     const errorData = await res.json().catch(() => ({}));
-    const message = errorData?.error?.message || `${res.status} ${res.statusText}`;
-    throw new ApiError(message, res.status, errorData?.error?.code);
+    const isOffline = errorData?.offline === true;
+    const code = isOffline ? 'OFFLINE' : errorData?.error?.code;
+    const message = errorData?.error?.message || (isOffline ? 'Offline mode - using cached data' : `${res.status} ${res.statusText}`);
+    throw new ApiError(message, res.status, code);
   }
   return res.json() as Promise<T>;
 }
