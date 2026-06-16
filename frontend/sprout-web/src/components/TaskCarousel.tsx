@@ -130,13 +130,13 @@ export function TaskCarousel({ profile, tasks, completedIds, currentIndex, onInd
       </div>
 
       {/* Navigation */}
-      <nav className="flex items-center gap-2 mt-2 py-1 min-w-0" aria-label="Task navigation">
+      <nav className="flex items-center gap-2 mt-2 py-1 min-w-0 flex-nowrap" aria-label="Task navigation">
         <button
           onClick={goPrev}
           disabled={currentIndex === 0}
           aria-label="Previous task"
           title="Previous task (or press left arrow)"
-          className="h-9 w-9 flex items-center justify-center flex-shrink-0 text-gray-600 disabled:opacity-30 disabled:cursor-not-allowed rounded-lg hover:bg-gray-100 active:bg-gray-200 transition-colors"
+          className="h-9 w-9 flex items-center justify-center flex-shrink-0 flex-grow-0 text-gray-600 disabled:opacity-30 disabled:cursor-not-allowed rounded-lg hover:bg-gray-100 active:bg-gray-200 transition-colors"
         >
           <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
             <path d="M15 18l-6-6 6-6"/>
@@ -173,7 +173,7 @@ export function TaskCarousel({ profile, tasks, completedIds, currentIndex, onInd
           disabled={currentIndex === tasks.length - 1}
           aria-label="Next task"
           title="Next task (or press right arrow)"
-          className="h-9 w-9 flex items-center justify-center flex-shrink-0 text-gray-600 disabled:opacity-30 disabled:cursor-not-allowed rounded-lg hover:bg-gray-100 active:bg-gray-200 transition-colors"
+          className="h-9 w-9 flex items-center justify-center flex-shrink-0 flex-grow-0 text-gray-600 disabled:opacity-30 disabled:cursor-not-allowed rounded-lg hover:bg-gray-100 active:bg-gray-200 transition-colors"
         >
           <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
             <path d="M9 18l6-6-6-6"/>
