@@ -130,20 +130,20 @@ export function TaskCarousel({ profile, tasks, completedIds, currentIndex, onInd
       </div>
 
       {/* Navigation */}
-      <nav className="flex items-center justify-between gap-2 mt-2 px-1" aria-label="Task navigation">
+      <div className="flex items-center justify-center gap-2 mt-2 py-1" aria-label="Task navigation">
         <button
           onClick={goPrev}
           disabled={currentIndex === 0}
           aria-label="Previous task"
           title="Previous task (or press left arrow)"
-          className="min-h-[48px] min-w-[48px] sm:min-h-[64px] sm:min-w-[64px] flex items-center justify-center text-gray-500 disabled:opacity-20 disabled:cursor-not-allowed rounded-2xl hover:bg-gray-50 active:bg-gray-100 transition-colors cursor-pointer flex-shrink-0"
+          className="h-9 w-9 flex items-center justify-center text-gray-600 disabled:opacity-30 disabled:cursor-not-allowed rounded-lg hover:bg-gray-100 active:bg-gray-200 transition-colors"
         >
-          <svg className="w-6 h-6 sm:w-9 sm:h-9" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+          <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
             <path d="M15 18l-6-6 6-6"/>
           </svg>
         </button>
 
-        <div className="flex items-center gap-1 min-w-0 flex-1" role="tablist" aria-label="Task list">
+        <div className="flex items-center gap-1 justify-center" role="tablist" aria-label="Task list">
           {tasks.map((task, i) => (
             <button
               key={i}
@@ -152,15 +152,15 @@ export function TaskCarousel({ profile, tasks, completedIds, currentIndex, onInd
               aria-selected={i === currentIndex}
               aria-label={`Task ${i + 1} of ${tasks.length}${completedIds.includes(task.id) ? ' - completed' : ''}`}
               title={`Go to task ${i + 1}`}
-              className="min-h-[44px] min-w-[44px] flex items-center justify-center cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-orange-400 rounded-full flex-shrink-0"
+              className="h-8 w-8 flex items-center justify-center cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-orange-400 rounded-full"
             >
               <div
                 className={`rounded-full transition-all duration-300 ${
                   i === currentIndex
-                    ? 'w-4 h-2.5 bg-orange-400'
+                    ? 'w-2.5 h-2 bg-orange-400'
                     : completedIds.includes(task.id)
-                    ? 'w-2.5 h-2.5 bg-emerald-400'
-                    : 'w-2.5 h-2.5 bg-gray-200'
+                    ? 'w-1.5 h-1.5 bg-emerald-400'
+                    : 'w-1.5 h-1.5 bg-gray-300'
                 }`}
                 aria-hidden="true"
               />
@@ -173,13 +173,13 @@ export function TaskCarousel({ profile, tasks, completedIds, currentIndex, onInd
           disabled={currentIndex === tasks.length - 1}
           aria-label="Next task"
           title="Next task (or press right arrow)"
-          className="min-h-[48px] min-w-[48px] sm:min-h-[64px] sm:min-w-[64px] flex items-center justify-center text-gray-500 disabled:opacity-20 disabled:cursor-not-allowed rounded-2xl hover:bg-gray-50 active:bg-gray-100 transition-colors cursor-pointer flex-shrink-0"
+          className="h-9 w-9 flex items-center justify-center text-gray-600 disabled:opacity-30 disabled:cursor-not-allowed rounded-lg hover:bg-gray-100 active:bg-gray-200 transition-colors"
         >
-          <svg className="w-6 h-6 sm:w-9 sm:h-9" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+          <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
             <path d="M9 18l6-6-6-6"/>
           </svg>
         </button>
-      </nav>
+      </div>
     </div>
   );
 }
