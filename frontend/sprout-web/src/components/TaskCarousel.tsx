@@ -130,20 +130,20 @@ export function TaskCarousel({ profile, tasks, completedIds, currentIndex, onInd
       </div>
 
       {/* Navigation */}
-      <div className="flex items-center justify-center gap-2 mt-2 py-1" aria-label="Task navigation">
+      <nav className="flex items-center gap-2 mt-2 py-1 min-w-0" aria-label="Task navigation">
         <button
           onClick={goPrev}
           disabled={currentIndex === 0}
           aria-label="Previous task"
           title="Previous task (or press left arrow)"
-          className="h-9 w-9 flex items-center justify-center text-gray-600 disabled:opacity-30 disabled:cursor-not-allowed rounded-lg hover:bg-gray-100 active:bg-gray-200 transition-colors"
+          className="h-9 w-9 flex items-center justify-center flex-shrink-0 text-gray-600 disabled:opacity-30 disabled:cursor-not-allowed rounded-lg hover:bg-gray-100 active:bg-gray-200 transition-colors"
         >
           <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
             <path d="M15 18l-6-6 6-6"/>
           </svg>
         </button>
 
-        <div className="flex items-center gap-1 justify-center" role="tablist" aria-label="Task list">
+        <div className="flex items-center gap-0.5 min-w-0 flex-1 overflow-x-auto justify-center" role="tablist" aria-label="Task list">
           {tasks.map((task, i) => (
             <button
               key={i}
@@ -152,15 +152,15 @@ export function TaskCarousel({ profile, tasks, completedIds, currentIndex, onInd
               aria-selected={i === currentIndex}
               aria-label={`Task ${i + 1} of ${tasks.length}${completedIds.includes(task.id) ? ' - completed' : ''}`}
               title={`Go to task ${i + 1}`}
-              className="h-8 w-8 flex items-center justify-center cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-orange-400 rounded-full"
+              className="h-6 w-6 flex items-center justify-center flex-shrink-0 cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-orange-400 rounded-full"
             >
               <div
                 className={`rounded-full transition-all duration-300 ${
                   i === currentIndex
-                    ? 'w-2.5 h-2 bg-orange-400'
+                    ? 'w-2 h-1.5 bg-orange-400'
                     : completedIds.includes(task.id)
-                    ? 'w-1.5 h-1.5 bg-emerald-400'
-                    : 'w-1.5 h-1.5 bg-gray-300'
+                    ? 'w-1 h-1 bg-emerald-400'
+                    : 'w-1 h-1 bg-gray-300'
                 }`}
                 aria-hidden="true"
               />
@@ -173,13 +173,13 @@ export function TaskCarousel({ profile, tasks, completedIds, currentIndex, onInd
           disabled={currentIndex === tasks.length - 1}
           aria-label="Next task"
           title="Next task (or press right arrow)"
-          className="h-9 w-9 flex items-center justify-center text-gray-600 disabled:opacity-30 disabled:cursor-not-allowed rounded-lg hover:bg-gray-100 active:bg-gray-200 transition-colors"
+          className="h-9 w-9 flex items-center justify-center flex-shrink-0 text-gray-600 disabled:opacity-30 disabled:cursor-not-allowed rounded-lg hover:bg-gray-100 active:bg-gray-200 transition-colors"
         >
           <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
             <path d="M9 18l6-6-6-6"/>
           </svg>
         </button>
-      </div>
+      </nav>
     </div>
   );
 }
