@@ -182,6 +182,28 @@ Then proxy `https://yourdomain.com` → `http://localhost:5000` via Caddy or ngi
 
 ---
 
+## Versioning
+
+Sprout uses **Calendar Versioning (CalVer)** with auto-incrementing patch numbers: `vYYYY.MM.DD.PATCH`
+
+**Release versioning:**
+- First release on 2026-06-17: `v2026.06.17.0`
+- Second release on 2026-06-17: `v2026.06.17.1`
+- First release on 2026-06-18: `v2026.06.18.0`
+
+**How it works:**
+- The CI/CD pipeline (`ci.yml`) automatically generates versions on every successful build to `main`
+- It queries existing git tags for today's date, extracts the highest patch number, and increments it
+- Each GitHub Release is tagged and includes release artifacts (backend and frontend zips)
+- No manual version bumping needed — fully automated
+
+**Why CalVer?**
+- Clear deployment timeline — parents see exactly when features were released
+- Works well for active, frequently-deployed apps
+- Survives CI reruns (same version on retry)
+
+---
+
 ## API Reference
 
 ### Tasks
