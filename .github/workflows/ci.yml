@@ -111,7 +111,12 @@ jobs:
       - name: Get Version
         id: version
         run: |
-          VERSION=$(date +'%Y.%m.%d')
+          TODAY=$(date +'%Y.%m.%d')
+          # Find existing tags for today, extract patch numbers, get max
+          LATEST_PATCH=$(git tag -l "v${TODAY}.*" | sed "s/v${TODAY}\.\([0-9]*\)/\1/" | sort -n | tail -1)
+          PATCH=$((LATEST_PATCH + 1))
+          [ -z "$LATEST_PATCH" ] && PATCH=0
+          VERSION="${TODAY}.${PATCH}"
           echo "version=$VERSION" >> $GITHUB_OUTPUT
 
       - name: Create GitHub Release
