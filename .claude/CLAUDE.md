@@ -12,8 +12,9 @@
 │   ├── CLAUDE.md (this file)
 │   └── skills/ (backend.md, frontend.md, storage.md, animations.md, toddler-ux.md)
 ├── .github/workflows/ci.yml (backend tests + frontend type-check/build)
-├── backend/Sprout.Api/ (.NET 10 Minimal API + Services + Storage/data/)
-├── backend/Sprout.Api.Tests/
+├── backend/Sprout.Api/ (.NET 10 Minimal API + Services + Endpoints)
+├── backend/Sprout.DataAccess/ (EF Core data access layer + PostgreSQL)
+├── backend/Sprout.Api.Tests/ (Integration tests with in-memory EF Core)
 ├── frontend/sprout-web/ (React 18 + TypeScript + Vite + Tailwind v4)
 └── run.sh (starts both servers)
 ```
@@ -35,7 +36,7 @@
 
 1. **Child view never breaks** — always render (`/`, `View='child'`), even if API unreachable. Fallback to localStorage. Missing emoji? Show 📋. No progress data? Show all incomplete.
 
-2. **Repository Pattern enforced** — all data via `ITaskService` / `IProgressService` / `IProfileService`. Never bypass with direct file I/O.
+2. **Repository Pattern enforced** — all data via repositories (`ITaskRepository` / `IProgressRepository` / `IProfileRepository`) in the `Sprout.DataAccess` layer. Services use repositories; never bypass with direct database I/O or file access.
 
 3. **CSS keyframes only** — animations in `sprout-web/src/index.css`. No Framer Motion, GSAP, or confetti packages. Five keyframes: `float`, `bounce`, `confettiFall`, `pulseGlow`, `ripple`.
 
@@ -49,9 +50,12 @@
 
 | File | Read Before Editing |
 | --- | --- |
-| Program.cs | Service registration + endpoint mapping |
-| JsonProgressService.cs | SemaphoreSlim locking; week = Monday–Sunday |
-| JsonProfileService.cs | Child profile persistence |
+| Program.cs | Service registration + endpoint mapping + DB migrations |
+| Sprout.DataAccess/Context/SproutDbContext.cs | Database schema + entity configuration |
+| Sprout.DataAccess/Repositories/ | ITaskRepository, IProgressRepository, IProfileRepository |
+| Services/DbProgressService.cs | Week boundaries (Monday–Sunday); maps entities to domain models |
+| Services/DbTaskService.cs | Task management via repository layer |
+| Services/DbChildProfileService.cs | Child profile persistence |
 | api/client.ts | Single source of truth for all API calls |
 | App.tsx | View state + data fetching orchestration |
 | useProfile.ts | Profile state + cache management |

@@ -34,11 +34,12 @@ A gamified daily habit tracker for toddlers (ages 3–4). The child taps through
 | Layer | Technology |
 |---|---|
 | Backend API | .NET 10 — Minimal API (C#) |
-| Storage | JSON flat files (upgrade path: swap service, keep interfaces) |
+| Database | PostgreSQL + Entity Framework Core 10 |
+| Data Access | Repository pattern with `Sprout.DataAccess` layer |
 | Frontend | React 18 + TypeScript + Vite |
 | Styling | Tailwind CSS v4 |
 | Animations | Pure CSS keyframes — no animation libraries |
-| Tests | xUnit + `WebApplicationFactory` integration tests |
+| Tests | xUnit + `WebApplicationFactory` integration tests (in-memory EF Core) |
 
 ---
 
@@ -50,9 +51,16 @@ sprout/
 │   ├── Sprout.Api/               .NET 10 Minimal API
 │   │   ├── Endpoints/            TaskEndpoints.cs, ProgressEndpoints.cs, ProfileEndpoints.cs
 │   │   ├── Models/               HabitTask.cs, DailyProgress.cs, ChildProfile.cs
-│   │   ├── Services/             ITaskService, IProgressService, IProfileService + JSON implementations
-│   │   └── Storage/data/         tasks.json, progress.json, profile.json (runtime data, gitignored)
-│   └── Sprout.Api.Tests/         Integration tests
+│   │   ├── Services/             DbTaskService, DbProgressService, DbChildProfileService
+│   │   ├── Storage/data/         tasks.json, progress.json, profile.json (auto-migrated to DB)
+│   │   └── appsettings.json      PostgreSQL connection string
+│   ├── Sprout.DataAccess/        Data access layer (EF Core)
+│   │   ├── Context/              SproutDbContext.cs
+│   │   ├── Entities/             HabitTaskEntity, DailyProgressEntity, ChildProfileEntity, CompletedTaskEntity
+│   │   ├── Repositories/         ITaskRepository, IProgressRepository, IProfileRepository + implementations
+│   │   ├── DataMigration/        JsonToDbMigration.cs (auto-migrates JSON to PostgreSQL)
+│   │   └── Migrations/           EF Core database migrations
+│   └── Sprout.Api.Tests/         Integration tests (uses in-memory EF Core)
 │
 ├── frontend/
 │   └── sprout-web/               React + TypeScript + Vite
@@ -73,8 +81,19 @@ sprout/
 
 - [.NET 10 SDK](https://dotnet.microsoft.com/download)
 - [Node.js 20+](https://nodejs.org)
+- [PostgreSQL 13+](https://www.postgresql.org/download/) (for development/production)
 
 ### Run in development
+
+**Setup Database (first time only)**
+
+```bash
+# Start PostgreSQL
+brew services start postgresql
+
+# Create the database
+psql -U rajitha -h localhost -c 'CREATE DATABASE "Sprout";'
+```
 
 **Terminal 1 — API** (http://localhost:5000)
 
@@ -82,6 +101,11 @@ sprout/
 cd backend/Sprout.Api
 dotnet run
 ```
+
+The API will automatically:
+- Run database migrations (EF Core)
+- Migrate data from JSON files to PostgreSQL
+- Start the server on `http://localhost:5000`
 
 **Terminal 2 — Frontend** (http://localhost:5173)
 
@@ -266,21 +290,27 @@ Sprout uses **Calendar Versioning (CalVer)** with auto-incrementing patch number
 
 ## Configuration
 
-The storage path is configurable via `appsettings.json` or an environment variable:
+### Database Connection String
+
+Configure the PostgreSQL connection in `appsettings.json`:
 
 ```json
 {
-  "Storage": {
-    "DataPath": "Storage/data"
+  "ConnectionStrings": {
+    "DefaultConnection": "Host=localhost;Database=Sprout;Username=rajitha;Port=5432"
   }
 }
 ```
 
-Override for a persistent volume in production:
+Override in production via environment variable:
 
 ```bash
-Storage__DataPath=/var/sprout-data dotnet run
+ConnectionStrings__DefaultConnection="Host=prod-server;Database=Sprout;Username=sprout_user;Password=secure_password" dotnet run
 ```
+
+### JSON Data Migration
+
+On first run, the application automatically migrates data from JSON files (`tasks.json`, `progress.json`, `profile.json`) to PostgreSQL. This is idempotent — it only runs if the database tables are empty.
 
 ---
 
@@ -346,16 +376,21 @@ cd backend/Sprout.Api.Tests
 dotnet test
 ```
 
-Tests use `WebApplicationFactory` to run the full API in-process against real JSON files written to a temp directory — no mocks for the storage layer.
+Tests use `WebApplicationFactory` with in-memory Entity Framework Core database — no PostgreSQL required for testing. All data access is validated against the repository layer without external dependencies.
 
-**Test coverage** — 73 tests including:
-- Task CRUD operations and edge cases
-- Progress tracking and concurrent mark-complete
-- Week calculation edge cases (Sunday→Monday boundary)
-- Profile management and validation
-- PIN authentication
-- Error handling (validation, not found, timeouts)
-- Offline fallback behavior
+**Test coverage** — 103 tests including:
+- **Database Repository Tests (34 tests)**
+  - TaskRepository CRUD operations, validation, and sorting
+  - ProgressRepository week calculation and completion tracking
+  - ProfileRepository singleton persistence
+- **Integration Tests (69 tests)**
+  - Task CRUD operations and edge cases
+  - Progress tracking and concurrent mark-complete
+  - Week calculation edge cases (Sunday→Monday boundary)
+  - Profile management and validation
+  - PIN authentication
+  - Error handling (validation, not found, timeouts)
+  - Offline fallback behavior
 
 Run with verbose output:
 
@@ -398,13 +433,19 @@ The app is built to handle real-world issues gracefully:
 
 ## Architecture Notes
 
-**Repository pattern** — all data access goes through `ITaskService`, `IProgressService`, and `IProfileService`. The current implementations write JSON files; swapping to SQLite or a cloud DB is a single new class per interface with no changes to endpoints or frontend.
+**Repository pattern** — all data access goes through `ITaskRepository`, `IProgressRepository`, and `IProfileRepository` in the `Sprout.DataAccess` layer. Services depend on repositories, maintaining separation of concerns. Swapping to SQLite, MongoDB, or a cloud DB requires only new repository implementations with no changes to endpoints or frontend.
 
-**Concurrent writes** — `JsonProgressService` uses a `SemaphoreSlim(1,1)` to serialise all writes, so rapid taps from the child won't corrupt the progress file.
+**Entity Framework Core** — `SproutDbContext` manages PostgreSQL schema with four entities: `HabitTaskEntity`, `DailyProgressEntity`, `ChildProfileEntity`, and `CompletedTaskEntity` (bridge table for many-to-many task completions). Database migrations are version-controlled and applied automatically on app startup.
+
+**Automatic data migration** — `JsonToDbMigration` runs on first startup, reading JSON files and populating PostgreSQL. The process is idempotent — it only runs if tables are empty. JSON files are preserved as a backup and untouched during migration.
+
+**Concurrent writes** — Database transactions and row-level locking handle concurrent updates safely. Progress updates are atomic, so rapid task completions from the child never corrupt data.
 
 **Week boundaries** — the streak bar displays the current week starting from Monday and ending on Sunday, ensuring consistent week boundaries across app restarts.
 
-**Child profile** — stored persistently via `IProfileService`, allowing parents to customize the child's name and avatar emoji.
+**Child profile** — stored persistently in `ChildProfiles` table, allowing parents to customize the child's name and avatar emoji.
+
+**Soft deletes** — tasks are marked `IsActive=false` instead of deleted, preserving historical data for compliance and analytics.
 
 **No router** — view switching between child and parent is a single `useState` in `App.tsx`. No router library needed.
 
@@ -413,3 +454,12 @@ The app is built to handle real-world issues gracefully:
 **Per-task & all-complete celebrations** — `useProgress.markComplete` receives the full list of active task IDs and triggers a celebration callback with the task emoji and a flag indicating if all tasks are done. The celebration shows the task emoji for individual completions, then the trophy emoji for the final "All Done!" overlay.
 
 **Offline fallback** — `useTasks`, `useProgress`, and `useProfile` write to `localStorage` on every successful fetch. If the API is unreachable on load, the cached data is used so the child view always renders.
+
+---
+
+## Database Documentation
+
+Detailed guides for database setup and migration:
+
+- **[DATABASE_SETUP.md](backend/DATABASE_SETUP.md)** — PostgreSQL installation, configuration, and troubleshooting
+- **[DATABASE_MIGRATION_SUMMARY.md](backend/DATABASE_MIGRATION_SUMMARY.md)** — Architecture overview, schema design, and deployment guide

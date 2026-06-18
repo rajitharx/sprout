@@ -7,6 +7,7 @@ This setup builds and packages both the frontend (React) and backend (.NET) into
 ### Prerequisites
 
 - Docker & Docker Compose installed on your homelab machine
+- PostgreSQL 13+ running (locally or remote)
 - Access to the Sprout repository
 
 ### Quick Start
@@ -35,21 +36,26 @@ If you prefer not to use Docker Compose:
 # Build the image
 docker build -t sprout:latest .
 
-# Run the container
+# Run the container with PostgreSQL connection
 docker run -d \
   --name sprout-app \
   -p 5000:5000 \
-  -v sprout-storage:/app/Storage \
+  -e ConnectionStrings__DefaultConnection="Host=postgres-server;Database=Sprout;Username=sprout_user;Password=secure_password" \
   --restart unless-stopped \
   sprout:latest
 ```
 
 ### Persistent Storage
 
-Task progress and profile data are stored in the `Storage/` directory within the container:
-- Mounted to the `sprout-storage` Docker volume
-- Persists even when the container restarts
-- Location on host: `/var/lib/docker/volumes/sprout-storage/_data`
+Data is now persisted in PostgreSQL database instead of JSON files:
+
+**Database Configuration:**
+- Point the container to your PostgreSQL server via environment variable
+- Example: `ConnectionStrings__DefaultConnection=Host=postgres-server;Database=Sprout;Username=sprout_user;Password=secure_password`
+
+**JSON Migration:**
+- On first run, JSON files in `Storage/data/` are automatically migrated to PostgreSQL (if present)
+- JSON files are left untouched as a backup after migration
 
 ### View Logs
 
@@ -88,9 +94,10 @@ environment:
 docker-compose logs sprout  # Check error messages
 ```
 
-**Storage not persisting:**
-- Verify the volume exists: `docker volume ls | grep sprout`
-- Check permissions in `/var/lib/docker/volumes/sprout-storage/_data`
+**Database connection errors:**
+- Verify PostgreSQL is accessible from the container
+- Check connection string in environment variables
+- Ensure database exists: `psql -h postgres-server -U sprout_user -c "SELECT * FROM pg_database WHERE datname='Sprout';"`
 
 **Frontend not loading:**
 - Ensure the build completed successfully: `docker-compose build --no-cache`
