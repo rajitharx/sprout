@@ -15,7 +15,8 @@ FROM mcr.microsoft.com/dotnet/sdk:10.0 AS backend-builder
 
 WORKDIR /app
 
-# Copy backend files
+# Copy backend files (including data access layer)
+COPY backend/Sprout.DataAccess/ ./Sprout.DataAccess/
 COPY backend/Sprout.Api/ ./Sprout.Api/
 COPY backend/Sprout.Api.Tests/ ./Sprout.Api.Tests/
 
@@ -35,8 +36,8 @@ WORKDIR /app
 # Copy published app
 COPY --from=backend-builder /app/publish .
 
-# Create storage directory for JSON persistence
-RUN mkdir -p Storage
+# Create storage directory for optional JSON-to-PostgreSQL migration
+RUN mkdir -p Storage/data
 
 # Expose port
 EXPOSE 5000

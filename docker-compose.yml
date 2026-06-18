@@ -1,6 +1,24 @@
 version: '3.8'
 
 services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: sprout-postgres
+    environment:
+      - POSTGRES_USER=sprout_user
+      - POSTGRES_PASSWORD=sprout_password
+      - POSTGRES_DB=Sprout
+    ports:
+      - "5432:5432"
+    volumes:
+      - sprout-postgres-data:/var/lib/postgresql/data
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U sprout_user -d Sprout"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
   sprout:
     build:
       context: .
@@ -8,11 +26,13 @@ services:
     container_name: sprout-app
     ports:
       - "5000:5000"
-    volumes:
-      - sprout-storage:/app/Storage
     environment:
       - ASPNETCORE_ENVIRONMENT=Production
       - ASPNETCORE_URLS=http://+:5000
+      - ConnectionStrings__DefaultConnection=Host=postgres;Database=Sprout;Username=sprout_user;Password=sprout_password;Port=5432
+    depends_on:
+      postgres:
+        condition: service_healthy
     restart: unless-stopped
     healthcheck:
       test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:5000/health"]
@@ -22,5 +42,5 @@ services:
       start_period: 5s
 
 volumes:
-  sprout-storage:
+  sprout-postgres-data:
     driver: local
