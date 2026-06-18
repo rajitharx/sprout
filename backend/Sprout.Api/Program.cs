@@ -1,15 +1,47 @@
+using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.InMemory;
 using Sprout.Api.Endpoints;
 using Sprout.Api.Services;
+using Sprout.DataAccess.Context;
+using Sprout.DataAccess.DataMigration;
+using Sprout.DataAccess.Repositories;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddSingleton<ISystemClock, SystemClock>();
-builder.Services.AddSingleton<ITaskService, JsonTaskService>();
-builder.Services.AddSingleton<IProgressService, JsonProgressService>();
-builder.Services.AddSingleton<IChildProfileService, JsonChildProfileService>();
+
+var connectionString = builder.Configuration.GetConnectionString("DefaultConnection")
+    ?? "Host=localhost;Database=Sprout;Username=postgres;Password=postgres";
+
+// Only register PostgreSQL if not using an in-memory connection string
+var isInMemoryDb = connectionString.Contains("Data Source=:memory:") ||
+                   connectionString.Contains("InMemory") ||
+                   connectionString.Contains(":memory:");
+
+if (!isInMemoryDb)
+{
+    builder.Services.AddDbContext<SproutDbContext>(options =>
+        options.UseNpgsql(connectionString));
+}
+else
+{
+    // Use a stable database name based on the connection string for tests
+    var dbName = "SproutDb_" + connectionString.GetHashCode().ToString().Replace("-", "");
+    builder.Services.AddDbContext<SproutDbContext>(options =>
+        options.UseInMemoryDatabase(dbName));
+}
+
+builder.Services.AddScoped<ITaskRepository, TaskRepository>();
+builder.Services.AddScoped<IProgressRepository, ProgressRepository>();
+builder.Services.AddScoped<IProfileRepository, ProfileRepository>();
+
+builder.Services.AddScoped<ITaskService, DbTaskService>();
+builder.Services.AddScoped<IProgressService, DbProgressService>();
+builder.Services.AddScoped<IChildProfileService, DbChildProfileService>();
 builder.Services.AddSingleton<IAuthenticationService, ConfigurationAuthenticationService>();
+
 builder.Services.ConfigureHttpJsonOptions(opt =>
 {
     opt.SerializerOptions.DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull;
@@ -28,6 +60,41 @@ if (debugEnabled)
     logger.LogInformation("📋 LogRequests: {LogRequests}", debugConfig.GetValue<bool>("LogRequests"));
     logger.LogInformation("📋 LogServiceCalls: {LogServiceCalls}", debugConfig.GetValue<bool>("LogServiceCalls"));
     logger.LogInformation("📋 LogExceptions: {LogExceptions}", debugConfig.GetValue<bool>("LogExceptions"));
+}
+
+// Run database migrations and migrate data from JSON files
+using (var scope = app.Services.CreateScope())
+{
+    try
+    {
+        var context = scope.ServiceProvider.GetRequiredService<SproutDbContext>();
+        var isRelationalDb = context.Database.IsRelational();
+
+        if (isRelationalDb)
+        {
+            logger.LogInformation("🗄️ Running database migrations...");
+            await context.Database.MigrateAsync();
+            logger.LogInformation("✅ Database migrations completed");
+        }
+        else
+        {
+            logger.LogInformation("🗄️ Creating database schema (in-memory)...");
+            await context.Database.EnsureCreatedAsync();
+            logger.LogInformation("✅ Database schema created");
+        }
+
+        // Migrate data from JSON files to database
+        var dataPath = app.Configuration["Storage:DataPath"] ?? "Storage/data";
+        var jsonMigration = new JsonToDbMigration(context, dataPath);
+        logger.LogInformation("📦 Migrating data from JSON files to database...");
+        await jsonMigration.MigrateAsync();
+        logger.LogInformation("✅ Data migration completed");
+    }
+    catch (Exception ex)
+    {
+        logger.LogError(ex, "❌ Error during database initialization");
+        throw;
+    }
 }
 
 app.UseMiddleware<ExceptionHandlingMiddleware>();
