@@ -21,14 +21,14 @@ public class EndpointFailureTests : IClassFixture<SproutWebApplicationFactory>
     private HttpClient ClientWith(Action<IServiceCollection> configure) =>
         _factory.WithWebHostBuilder(b => b.ConfigureTestServices(configure)).CreateClient();
 
-    private static HttpClient WithFailingTasks(EndpointFailureTests t)
+    private HttpClient WithFailingTasks()
     {
         var svc = new Mock<ITaskService>();
         svc.Setup(s => s.GetAllAsync()).ThrowsAsync(new InvalidOperationException());
         svc.Setup(s => s.CreateAsync(It.IsAny<HabitTask>())).ThrowsAsync(new InvalidOperationException());
         svc.Setup(s => s.UpdateAsync(It.IsAny<string>(), It.IsAny<HabitTask>())).ThrowsAsync(new InvalidOperationException());
         svc.Setup(s => s.DeleteAsync(It.IsAny<string>())).ThrowsAsync(new InvalidOperationException());
-        return t.ClientWith(s => s.AddScoped(_ => svc.Object));
+        return ClientWith(s => s.AddScoped(_ => svc.Object));
     }
 
     private HttpClient WithFailingProgress()
@@ -54,28 +54,28 @@ public class EndpointFailureTests : IClassFixture<SproutWebApplicationFactory>
     [Fact]
     public async Task GetTasks_ServiceThrows_Returns500()
     {
-        var response = await WithFailingTasks(this).GetAsync("/api/tasks");
+        var response = await WithFailingTasks().GetAsync("/api/tasks");
         Assert.Equal(HttpStatusCode.InternalServerError, response.StatusCode);
     }
 
     [Fact]
     public async Task PostTask_ServiceThrows_Returns500()
     {
-        var response = await WithFailingTasks(this).PostAsJsonAsync("/api/tasks", ValidTask);
+        var response = await WithFailingTasks().PostAsJsonAsync("/api/tasks", ValidTask);
         Assert.Equal(HttpStatusCode.InternalServerError, response.StatusCode);
     }
 
     [Fact]
     public async Task PutTask_ServiceThrows_Returns500()
     {
-        var response = await WithFailingTasks(this).PutAsJsonAsync("/api/tasks/abc", ValidTask);
+        var response = await WithFailingTasks().PutAsJsonAsync("/api/tasks/abc", ValidTask);
         Assert.Equal(HttpStatusCode.InternalServerError, response.StatusCode);
     }
 
     [Fact]
     public async Task DeleteTask_ServiceThrows_Returns500()
     {
-        var response = await WithFailingTasks(this).DeleteAsync("/api/tasks/abc");
+        var response = await WithFailingTasks().DeleteAsync("/api/tasks/abc");
         Assert.Equal(HttpStatusCode.InternalServerError, response.StatusCode);
     }
 

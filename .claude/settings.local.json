@@ -9,7 +9,28 @@
       "Bash(dotnet test *)",
       "Bash(npx --yes playwright@latest install chromium)",
       "Bash(node /tmp/verify_checkmark.js)",
-      "Bash(~/.local/bin/graphify query *)"
+      "Bash(~/.local/bin/graphify query *)",
+      "Bash(curl -s -X POST http://localhost:5000/api/auth/validate-pin -H 'Content-Type: application/json' -d '{\"pin\":\"1234\"}')",
+      "Bash(curl -s http://localhost:5000/)",
+      "Bash(curl -v -X POST http://localhost:5000/api/auth/validate-pin -H 'Content-Type: application/json' -d '{\"pin\":\"1234\"}')",
+      "Bash(curl *)",
+      "Bash(npm *)",
+      "Skill(update-config)",
+      "Bash(timeout 8 ./run.sh)",
+      "Bash(python3 *)",
+      "Bash(./run.sh)",
+      "Bash(pkill -f \"dotnet run\")",
+      "Bash(pkill -f \"vite\")",
+      "Bash(git add *)",
+      "Bash(git commit -m ' *)",
+      "Bash(cat)",
+      "Bash(open /tmp/verify_mobile.html)",
+      "Bash(dotnet new *)",
+      "Bash(dotnet add *)",
+      "Bash(psql -U postgres -c \"SELECT version\\(\\);\")",
+      "Bash(psql -c \"SELECT version\\(\\);\")",
+      "Bash(dotnet ef *)",
+      "Bash(dotnet tool install *)"
     ]
   }
 }
