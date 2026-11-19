@@ -36,7 +36,7 @@ jobs:
         run: dotnet test Sprout.slnx --no-build --configuration Release --verbosity normal
 
   frontend:
-    name: Frontend — build
+    name: Frontend — test & build
     runs-on: ubuntu-latest
     defaults:
       run:
@@ -58,6 +58,9 @@ jobs:
 
       - name: Type check
         run: npm run type-check
+
+      - name: Test
+        run: npm test
 
       - name: Build
         run: npm run build
