@@ -61,6 +61,7 @@ export function ParentPanel({ tasks, profile, onBack, onCreate, onUpdate, onDele
   const [profileName, setProfileName] = useState(profile.name);
   const [profileAvatar, setProfileAvatar] = useState(profile.avatar);
   const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
+  const [adding, setAdding] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -79,6 +80,12 @@ export function ParentPanel({ tasks, profile, onBack, onCreate, onUpdate, onDele
     }
   }, [tasks]);
 
+  const closeAdd = () => {
+    if (busy) return;
+    setAdding(false);
+    setError(null);
+  };
+
   const handleCreate = async () => {
     if (!label.trim()) return;
     if (!emoji.trim()) {
@@ -91,6 +98,7 @@ export function ParentPanel({ tasks, profile, onBack, onCreate, onUpdate, onDele
       await onCreate({ label: label.trim(), emoji, sortOrder: localTasks.length, isActive: true });
       setLabel('');
       setEmoji('🪥');
+      setAdding(false);
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Failed to create task');
     } finally {
@@ -216,7 +224,7 @@ export function ParentPanel({ tasks, profile, onBack, onCreate, onUpdate, onDele
   const labelClass = 'block text-sm font-medium text-gray-600 mb-1.5';
 
   return (
-    <div className="h-[100dvh] flex flex-col bg-slate-50">
+    <div className="relative h-[100dvh] flex flex-col bg-slate-50 overflow-hidden">
       {/* Header */}
       <header className="flex items-center gap-3 px-4 py-3 bg-white border-b border-gray-100 shadow-sm">
         <button
@@ -425,15 +433,42 @@ export function ParentPanel({ tasks, profile, onBack, onCreate, onUpdate, onDele
           {localTasks.length === 0 && (
             <div className="flex flex-col items-center gap-2 py-10 text-gray-400">
               <span className="text-5xl" aria-hidden="true">🌱</span>
-              <p className="text-base font-medium">No tasks yet. Add one below!</p>
+              <p className="text-base font-medium">No tasks yet. Tap “Add Task” below!</p>
             </div>
           )}
         </section>
       </main>
 
-      {/* Add task footer */}
-      <footer className="bg-white border-t border-gray-100 px-4 py-4 space-y-3 shadow-[0_-2px_8px_rgba(0,0,0,0.04)]">
-        <h2 className="text-xs font-semibold text-gray-400 uppercase tracking-widest">Add Task</h2>
+      {/* Add task: slim bar; form opens in a bottom sheet so the list keeps the screen */}
+      <footer className="bg-white border-t border-gray-100 px-4 py-3 shadow-[0_-2px_8px_rgba(0,0,0,0.04)]">
+        <button
+          onClick={() => setAdding(true)}
+          className="w-full min-h-[52px] bg-orange-500 text-white font-bold text-lg rounded-2xl hover:bg-orange-600 active:scale-95 transition-all cursor-pointer focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-orange-700"
+        >
+          + Add Task
+        </button>
+      </footer>
+
+      {adding && (
+        <div className="absolute inset-0 z-20 flex flex-col justify-end bg-black/40" onClick={closeAdd}>
+          <div
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="add-task-title"
+            className="bg-white rounded-t-3xl px-4 pt-4 pb-4 space-y-3 max-h-[85dvh] overflow-y-auto shadow-xl"
+            onClick={e => e.stopPropagation()}
+            onKeyDown={e => e.key === 'Escape' && closeAdd()}
+          >
+            <div className="flex items-center justify-between">
+              <h2 id="add-task-title" className="text-lg font-bold text-gray-800">Add Task</h2>
+              <button
+                onClick={closeAdd}
+                aria-label="Cancel adding task"
+                className="min-h-[44px] min-w-[44px] flex items-center justify-center text-gray-500 rounded-xl hover:bg-gray-100 active:bg-gray-200 text-xl cursor-pointer focus-visible:outline-2 focus-visible:outline-orange-400"
+              >
+                ✕
+              </button>
+            </div>
         <div>
           <label className={labelClass} htmlFor="new-task-label">Task name <span className="text-red-500" aria-label="required">*</span></label>
           <div className="flex gap-2 items-center">
@@ -444,6 +479,7 @@ export function ParentPanel({ tasks, profile, onBack, onCreate, onUpdate, onDele
               onChange={e => setLabel(e.target.value)}
               onKeyDown={e => e.key === 'Enter' && !busy && handleCreate()}
               placeholder="e.g. Brush teeth"
+              autoFocus
               className={inputClass}
               aria-required="true"
               disabled={busy}
@@ -480,14 +516,17 @@ export function ParentPanel({ tasks, profile, onBack, onCreate, onUpdate, onDele
             </div>
           </div>
         </div>
-        <button
-          onClick={handleCreate}
-          disabled={busy || !label.trim() || !emoji.trim()}
-          className="w-full py-3 bg-orange-500 text-white font-bold text-lg rounded-2xl hover:bg-orange-600 active:scale-95 transition-all disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-orange-700"
-        >
-          {busy ? 'Adding...' : '+ Add Task'}
-        </button>
-      </footer>
+            <button
+              onClick={handleCreate}
+              disabled={busy || !label.trim() || !emoji.trim()}
+              className="w-full min-h-[52px] bg-orange-500 text-white font-bold text-lg rounded-2xl hover:bg-orange-600 active:scale-95 transition-all disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-orange-700"
+            >
+              {busy ? 'Adding...' : '+ Add Task'}
+            </button>
+            {error && <p className="text-sm text-red-600 font-medium text-center" role="alert">{error}</p>}
+          </div>
+        </div>
+      )}
     </div>
   );
 }

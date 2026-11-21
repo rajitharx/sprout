@@ -89,3 +89,12 @@ cd frontend/sprout-web && npm run build && cp -r dist/* ../../backend/Sprout.Api
 - Use `position: fixed` in child view (use `100dvh` flex layout)
 - Install animation packages or Tailwind plugins
 - Rename `ITaskService`, `IProgressService`, `IProfileService`
+
+---
+
+## Decisions Log (keep short; append new ones)
+
+- **Tap targets (2026-11-21):** child-view controls (carousel arrows, Done button) are ≥64px; parent-view controls ≥44px, including preset emoji buttons. No hover `title` tooltips on child-view buttons (touch users never see them).
+- **Done button (2026-11-21):** one label with its emoji inside (`⭐ I did it!` / `✅ Done!`); no separate icon span.
+- **Parent Add Task (2026-11-21):** the form is NOT a permanent footer. The footer is a single `+ Add Task` bar; tapping opens a bottom-sheet dialog (`absolute` inside the panel root, not `fixed`) so the task list keeps the screen. Sheet closes on success, ✕, backdrop tap or Escape; create errors render inside the sheet. See `frontend.md` → ParentPanel.
+- **Workflow (2026-11-21):** the `dev` branch is retired. Branch every change from `main`, PR into `main`. Never push without being asked.
