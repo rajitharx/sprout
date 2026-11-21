@@ -19,7 +19,7 @@ App.tsx  (view state: 'child' | 'parent')
     ├── Child profile editor
     ├── Task list with drag-to-reorder
     ├── Inline edit + delete confirmation
-    └── Add task footer
+    └── Add Task bar → bottom-sheet form
 ```
 
 ---
@@ -218,3 +218,15 @@ Before marking a component done, verify:
 - [ ] No horizontal overflow / scroll
 - [ ] Handles empty/loading/error states
 - [ ] Uses hook data, not direct `api.client` calls
+
+---
+
+## ParentPanel — Add Task Sheet
+
+The footer is only a full-width `+ Add Task` button. It sets `adding=true`, which renders a bottom sheet (`role="dialog"`, `absolute inset-0` inside the panel root which is `relative overflow-hidden`; do not use `position: fixed`).
+
+- Sheet holds name input (autofocus), custom emoji input, 20 preset emoji (≥44px), and submit.
+- Closes on successful create, ✕ button, backdrop click, or Escape. Close is ignored while `busy`.
+- Create errors show inside the sheet (the top banner is hidden behind the backdrop).
+- Both the footer button and the sheet submit are named "+ Add Task" — in tests scope the submit with `within(screen.getByRole('dialog'))`.
+- Tests: `ParentPanel.test.tsx`.
