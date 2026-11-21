@@ -173,19 +173,7 @@ The migration only happens if:
 
 ## Reverting to JSON Storage
 
-To revert to JSON-based storage, you can use the `JsonTaskService`, `JsonProgressService`, and `JsonChildProfileService` classes. Update `Program.cs`:
-
-```csharp
-// Instead of:
-builder.Services.AddScoped<ITaskService, DbTaskService>();
-builder.Services.AddScoped<IProgressService, DbProgressService>();
-builder.Services.AddScoped<IChildProfileService, DbChildProfileService>();
-
-// Use:
-builder.Services.AddSingleton<ITaskService, JsonTaskService>();
-builder.Services.AddSingleton<IProgressService, JsonProgressService>();
-builder.Services.AddSingleton<IChildProfileService, JsonChildProfileService>();
-```
+The JSON-backed services (`JsonTaskService`, `JsonProgressService`, `JsonChildProfileService`) were removed once the database became the only store. They remain in git history if you ever need them. The JSON files themselves are left untouched and are still used as the one-time import source described above.
 
 ## Testing
 
