@@ -27,11 +27,11 @@ Sprout.DataAccess/
 
 ### Backend Services Updated
 
-Created new database-backed services that replace JSON implementations:
+Database-backed services replaced the JSON implementations (since removed, see git history):
 
-- `DbTaskService` - Replaces `JsonTaskService`
-- `DbProgressService` - Replaces `JsonProgressService`  
-- `DbChildProfileService` - Replaces `JsonChildProfileService`
+- `DbTaskService`
+- `DbProgressService`
+- `DbChildProfileService`
 
 **All maintain the same interface** - no endpoint changes required!
 
@@ -210,24 +210,9 @@ All existing endpoints work unchanged:
 | Concurrent Writes | File lock (sequential) | Database transactions |
 | Data Growth | File size increases | Scales with DB |
 
-## Reverting to JSON (if needed)
+## Reverting to JSON
 
-If you need to revert to JSON storage:
-
-1. Update `Program.cs` service registration:
-   ```csharp
-   // Replace:
-   builder.Services.AddScoped<ITaskService, DbTaskService>();
-   // With:
-   builder.Services.AddSingleton<ITaskService, JsonTaskService>();
-   // (Same for Progress & Profile services)
-   ```
-
-2. Comment out database initialization code in `Program.cs`
-
-3. Restart application
-
-The JSON files remain intact as backup!
+The JSON service implementations were removed from the codebase. Recover them from git history if needed. The original JSON data files remain intact as a backup.
 
 ## Troubleshooting
 
