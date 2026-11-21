@@ -336,7 +336,7 @@ export function ParentPanel({ tasks, profile, onBack, onCreate, onUpdate, onDele
                             onClick={() => setEditEmoji(e)}
                             disabled={busy}
                             aria-pressed={editEmoji === e}
-                            className={`text-2xl p-1.5 rounded-lg cursor-pointer focus-visible:outline-2 focus-visible:outline-orange-400 disabled:opacity-50 disabled:cursor-not-allowed ${editEmoji === e ? 'bg-orange-100 ring-2 ring-orange-300' : 'hover:bg-gray-50 active:bg-gray-100'}`}
+                            className={`text-2xl min-h-[44px] min-w-[44px] rounded-lg cursor-pointer focus-visible:outline-2 focus-visible:outline-orange-400 disabled:opacity-50 disabled:cursor-not-allowed ${editEmoji === e ? 'bg-orange-100 ring-2 ring-orange-300' : 'hover:bg-gray-50 active:bg-gray-100'}`}
                             aria-label={`Select ${e} emoji`}
                           >
                             {e}
@@ -471,7 +471,7 @@ export function ParentPanel({ tasks, profile, onBack, onCreate, onUpdate, onDele
                   onClick={() => setEmoji(e)}
                   disabled={busy}
                   aria-pressed={emoji === e}
-                  className={`text-2xl p-1.5 rounded-lg cursor-pointer focus-visible:outline-2 focus-visible:outline-orange-400 disabled:opacity-50 disabled:cursor-not-allowed ${emoji === e ? 'bg-orange-100 ring-2 ring-orange-300' : 'hover:bg-gray-50 active:bg-gray-100'}`}
+                  className={`text-2xl min-h-[44px] min-w-[44px] rounded-lg cursor-pointer focus-visible:outline-2 focus-visible:outline-orange-400 disabled:opacity-50 disabled:cursor-not-allowed ${emoji === e ? 'bg-orange-100 ring-2 ring-orange-300' : 'hover:bg-gray-50 active:bg-gray-100'}`}
                   aria-label={`Select ${e} emoji`}
                 >
                   {e}
